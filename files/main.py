@@ -1,11 +1,11 @@
 from fastapi import FastAPI, WebSocket,Depends,  HTTPException, status
 from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
 from fastapi import FastAPI,Form
-from .shcema import UserCreate,ItemCreate,SaleCreate,SaleEdit,CategoryCreate
+from shcema import UserCreate,ItemCreate,SaleCreate,SaleEdit,CategoryCreate
 from datetime import timedelta
 from fastapi.middleware.cors import CORSMiddleware
-from .services import *
-from .models import User
+from services import *
+from models import User
 from sqlalchemy.orm import Session
 from websockets import WebSocketServerProtocol
 app = FastAPI()
