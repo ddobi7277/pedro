@@ -1,5 +1,4 @@
 import React , {useEffect, useState} from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import Box from '@mui/material/Box';
@@ -84,13 +83,13 @@ function Edit(){
     const [costMN, setCostMN] = useState(item.cost*tasaCambio)
     const [price, setPrice] = useState(item.price);
     const [cant, setCant]= useState(item.cant);
-    const [category, setCategory]= useState();
+    const [category, setCategory]= useState('');
     const navigate = useNavigate();
     const [categoryList, setCategoryList] = useState([]);
     const [show , setShow] = useState(false)
     const [errorC, setErrorC] = useState('')
     const [newcat,setNewCat] = useState('');
-    const [catname, setCatName] = useState(item ? item.category : '');
+    const [catname, setCatName] = useState(item.category.length > 0 ? item.category : '');
     const [country , setCountry] = useState(item.tax===0?'Cuba':'Otro') ;
     const [errorName,setErrorName] = useState(false);
     const [errorCost,setErrorCost] = useState(false);
@@ -103,43 +102,59 @@ function Edit(){
     const [errorCatM,setErrorCatM] = useState('');
     const theme = useTheme();
 
-    
-    useEffect(() => {
-        try {
-          axios.get(`http://localhost:8000/verify-token/${token}`)
-          .then((response)=> {
-            if (response.statusText !== 'OK') {
-            throw new Error(response.statusText);
-          }
-          }).catch(error => {
-            console.error('Error',error)
-            navigate('/login')
-        }) 
-          // Token is valid);
-        } catch (error) {
-          localStorage.removeItem('token');
-          navigate('/login');
-          return false; // Token is invalid
-        }  
-        console.log('data:',item)
-}, []);
-
-
-useEffect(() => {
-
-    axios.get('http://localhost:8000/get_categories_by_seller',{
-        headers: {
-            'Authorization': `Bearer ${token}`
-            }
-    }).then(response => {
-        setCategoryList(response.data)
-    }).catch(error => {
+    const verifiToken = async () => {
+      try{
+          const response = await fetch(`https://143.47.97.244/verify-token/${token}`, {
+              method: 'GET',
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'Authorization': 'Bearer ' + localStorage.getItem('token')
+              },
+      });
+  
+      if (!response.ok) {
+        const errorData= await response.json();
+        console.log(errorData)
+        navigate('/login')
+    } 
+        }catch (error){
+          console.log(error)
+          navigate('/login')
+      }
+      }
+     const get_categories_by_seller = async () => {
+      try{
+        const response = await fetch('https://143.47.97.244/get_categories_by_seller', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
+            },
+    });
+  
+    if (response.ok) {
+        const cat = await response.json();
+        setCategoryList(cat)
+        console.log('In list Item:');
+        console.log(cat)
+      } else {
+        const errorData= await response.json();
+        console.log(errorData)
+    }
+    }catch (error){
         console.log(error)
         navigate('/login')
-    })
-  console.log(catname)
+    }}
+    
   
-  }, []);
+        useEffect(() => {
+          (async () => {
+            await verifiToken();
+            await get_categories_by_seller();
+          })();
+        //console.log(catname)
+        
+        }, []);
 
 const handleSubmit= async() => {
     console.log('submit:',catname)
@@ -155,7 +170,7 @@ const handleSubmit= async() => {
     }
     if(validateInputs()){
         try{
-            const response = await fetch(`http://localhost:8000/edit/item/${item.id}`,{
+            const response = await fetch(`https://143.47.97.244/edit/item/${item.id}`,{
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -232,7 +247,7 @@ const handleNewCat
     } else if (newcat && catname.trim() !== "") {
 
       try{
-        const response = await fetch('http://localhost:8000/create/category',{
+        const response = await fetch('https://143.47.97.244/create/category',{
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -272,7 +287,7 @@ const handleNewCat
     }
     else if(editcat){
         try{
-            const response = await fetch(`http://localhost:8000/edit/category/${category}`,{
+            const response = await fetch(`https://143.47.97.244/edit/category/${category}`,{
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -298,7 +313,7 @@ const handleNewCat
 const handleDeleteCat = async () => {
     console.log(category)
     try{
-        const response = await fetch(`http://localhost:8000/delete/category/${category}`,{
+        const response = await fetch(`https://143.47.97.244/delete/category/${category}`,{
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -458,7 +473,7 @@ const handleDeleteCat = async () => {
           placeholder="Seleccione o Cree una Categoria"
           >
          {categoryList.map((option) => (
-    <MenuItem  key={option.id} value={option.name} >{option.name}</MenuItem>
+    <MenuItem  key={option.name} value={option.name} >{option.name}</MenuItem>
 ))}     
         </Select>
         {show && <Button onClick={(e) => {console.log(e.target);newcat?handleNewCat():setNewCat(true)}}   variant="outlined" sx={{width:'10%',margin:'6px'}} startIcon= {<AddIcon />}/>}

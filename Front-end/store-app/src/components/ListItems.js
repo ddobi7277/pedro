@@ -1,4 +1,3 @@
-import axios from "axios";
 import React, {useState, useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 import Button from '@mui/material/Button'
@@ -47,10 +46,6 @@ function ListItems({items}){
     const [cant,setCant]= useState(0);
     const [gender, setGender] = useState('Masculino');
     const [category, setCategory] = useState([]);
-    const totalMN = Math.round((items.reduce((acc, item) => acc + item.price * item.cant, 0))*100)/100;
-    const totalUSD = Math.round((items.reduce((acc, item) => acc + Math.round((item.price * item.cant) / tasaCambio), 0))*100)/100;
-    const totalGanancias = Math.round((items.reduce((acc, item) => acc + (item.price * item.cant) - ((item.cost + item.tax )* item.cant), 0))*100)/100;
-    const totalInversion= Math.round((items.reduce((acc,item) => acc + (item.cost + item.tax) * item.cant*tasaCambio, 0))*100)/100;
     const [selectedItem, setSelectedItem] = useState({});
     const [orows,setRows]= useState([]);
     const [open, setOpen] = React.useState(false);
@@ -83,29 +78,47 @@ function ListItems({items}){
         // ... other columns based on item data
     ];
 
+    const totalMN = Math.round((items.reduce((acc, item) => acc + item.price * item.cant, 0))*100)/100;
+    const totalUSD = Math.round((items.reduce((acc, item) => acc + Math.round((item.price * item.cant) / tasaCambio), 0))*100)/100;
+    const totalGanancias = Math.round((items.reduce((acc, item) => acc + (item.price * item.cant) - ((item.cost + item.tax )* item.cant), 0))*100)/100;
+    const totalInversion= Math.round((items.reduce((acc,item) => acc + (item.cost + item.tax) * item.cant*tasaCambio, 0))*100)/100;
+
       const [snackbar, setSnackbar] = React.useState(null);
     
       const handleCloseSnackbar = () => setSnackbar(null);
-      
+    
+    const get_categories_by_seller = async () => {
+      try{
+        const response = await fetch('https://143.47.97.244/get_categories_by_seller', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
+            },
+    });
+
+    if (response.ok) {
+        const cat = await response.json();
+        setCategory(cat)
+        console.log('In list Item:');
+        console.log(cat)
+      } else {
+        const errorData= await response.json();
+        console.log(errorData)
+    }
+    }catch (error){
+        console.log(error)
+    }}
+    
 
     useEffect(() => {
         localStorage.setItem('totalMN', totalMN);
         localStorage.setItem('totalUSD', totalUSD);
         localStorage.setItem('totalGanancias', totalGanancias);
         localStorage.setItem('totalInversion', totalInversion);
-        axios.get('http://localhost:8000/get_categories_by_seller',{
-            headers: {
-                'Authorization': `Bearer ${token}`
-                }
-        }).then(response => {
-            setCategory(response.data)
-        }).catch(error => {
-            console.log(error)
-            navigate('/login')
-        })
-        if (rows.length !== orows.length || rows.some((row, index) => row !== orows[index])) {
-            setRows(rows);
-        }
+        ( async () => {
+          await get_categories_by_seller();
+        } )();
     },[items])
 
     const getDateTimeString = () => {
@@ -178,7 +191,7 @@ function ListItems({items}){
             }
     
             try{
-            const response = await fetch('http://localhost:8000/create/sale',{
+            const response = await fetch('https://143.47.97.244/create/sale',{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -213,7 +226,7 @@ function ListItems({items}){
             console.log(selectedRow)
             let sms= `Vas a eliminar ${selectedRow.name} estas segur@?`
             if(window.confirm(sms)){
-                const response = await fetch(`http://localhost:8000/delete/items/${selectedRow.id}`,{
+                const response = await fetch(`https://143.47.97.244/delete/items/${selectedRow.id}`,{
                  method: 'DELETE',
                  headers: {
                      'Content-Type': 'application/json',
@@ -356,7 +369,7 @@ function ListItems({items}){
     <Paper sx={{ height: '400px', width: columns.length*250 }}>
             
             <DataGrid 
-                rows={orows} 
+                rows={rows} 
                 columns={columns}
                 apiRef={apiRef}
                 initialState={{ pagination: { paginationModel } }}

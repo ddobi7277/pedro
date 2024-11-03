@@ -1,11 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import ListItems from './ListItems';
-import axios from 'axios';
 import MuiCard from '@mui/material/Card';
 import { styled } from '@mui/material/styles';
-
-import Edit from './Edit';
 
 export default function Dashboard() {
     console.log('is rendering')
@@ -43,39 +40,45 @@ export default function Dashboard() {
     }));
     
        // const [promptShown, setPromptShown] = useState(false);
+    const verifiToken = async () => {
+      try{
+          const response = await fetch(`https://143.47.97.244/verify-token/${token}`, {
+              method: 'GET',
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'Authorization': 'Bearer ' + localStorage.getItem('token')
+              },
+      });
+  
+      if (response.ok) {
+          setIsLoaded(true);
+          const seller_iitem= await fetch('https://143.47.97.244/get_seller_items',{
+            method: 'GET',
+            headers:{
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Authorization': 'Bearer ' + localStorage.getItem('token')
+            }
+          })
+          const seller_items = await seller_iitem.json()
+          setData(seller_items)
+          setIsLoaded(true)
+        } else {
+          const errorData= await response.json();
+          console.log(errorData)
+          navigate('/login')
+      }
+      }catch (error){
+          console.log(error)
+          navigate('/login')
+      }
+      }
     
 
 console.log('items:',data)
     useEffect(() => {
-            try {
-              axios.get(`http://localhost:8000/verify-token/${token}`)
-              .then((response)=> {
-                if (response.statusText !== 'OK') {
-                throw new Error(response.statusText);
-              }
-              if (response.status === 200){
-                setIsLoaded(true);
-                axios.get('http://localhost:8000/get_seller_items', {
-                  headers: {
-                      'Authorization': `Bearer ${token}`,
-                    },
-                }).then(response => {
-                    console.log('response:',response.data)
-                    setData(response.data)
-                    setIsLoaded(true)
-                }).catch(error => {console.error('Error',error)}) 
-               
-            
-              }
-              }).catch(error => {console.error('Error',error)
-                navigate('/login')
-              }) 
-              // Token is valid);
-            } catch (error) {
-              localStorage.removeItem('token');
-              navigate('/');
-              return false; // Token is invalid
-            }  
+          (async () => {
+            await verifiToken()
+          })();
             console.log('data:',data)
             
     }, [token]);
