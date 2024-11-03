@@ -89,7 +89,7 @@ function ListItems({items}){
     
     const get_categories_by_seller = async () => {
       try{
-        const response = await fetch('https://143.47.97.244/get_categories_by_seller', {
+        const response = await fetch('https://cubaunify.uk/get_categories_by_seller', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -191,7 +191,7 @@ function ListItems({items}){
             }
     
             try{
-            const response = await fetch('https://143.47.97.244/create/sale',{
+            const response = await fetch('https://cubaunify.uk/create/sale',{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -226,7 +226,7 @@ function ListItems({items}){
             console.log(selectedRow)
             let sms= `Vas a eliminar ${selectedRow.name} estas segur@?`
             if(window.confirm(sms)){
-                const response = await fetch(`https://143.47.97.244/delete/items/${selectedRow.id}`,{
+                const response = await fetch(`https://cubaunify.uk/delete/items/${selectedRow.id}`,{
                  method: 'DELETE',
                  headers: {
                      'Content-Type': 'application/json',

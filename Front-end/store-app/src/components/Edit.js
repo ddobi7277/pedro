@@ -104,7 +104,7 @@ function Edit(){
 
     const verifiToken = async () => {
       try{
-          const response = await fetch(`https://143.47.97.244/verify-token/${token}`, {
+          const response = await fetch(`https://cubaunify.uk/verify-token/${token}`, {
               method: 'GET',
               headers: {
                   'Content-Type': 'application/x-www-form-urlencoded',
@@ -124,7 +124,7 @@ function Edit(){
       }
      const get_categories_by_seller = async () => {
       try{
-        const response = await fetch('https://143.47.97.244/get_categories_by_seller', {
+        const response = await fetch('https://cubaunify.uk/get_categories_by_seller', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -170,7 +170,7 @@ const handleSubmit= async() => {
     }
     if(validateInputs()){
         try{
-            const response = await fetch(`https://143.47.97.244/edit/item/${item.id}`,{
+            const response = await fetch(`https://cubaunify.uk/edit/item/${item.id}`,{
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -247,7 +247,7 @@ const handleNewCat
     } else if (newcat && catname.trim() !== "") {
 
       try{
-        const response = await fetch('https://143.47.97.244/create/category',{
+        const response = await fetch('https://cubaunify.uk/create/category',{
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -287,7 +287,7 @@ const handleNewCat
     }
     else if(editcat){
         try{
-            const response = await fetch(`https://143.47.97.244/edit/category/${category}`,{
+            const response = await fetch(`https://cubaunify.uk/edit/category/${category}`,{
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -313,7 +313,7 @@ const handleNewCat
 const handleDeleteCat = async () => {
     console.log(category)
     try{
-        const response = await fetch(`https://143.47.97.244/delete/category/${category}`,{
+        const response = await fetch(`https://cubaunify.uk/delete/category/${category}`,{
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

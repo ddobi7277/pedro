@@ -42,7 +42,7 @@ export default function Dashboard() {
        // const [promptShown, setPromptShown] = useState(false);
     const verifiToken = async () => {
       try{
-          const response = await fetch(`https://143.47.97.244/verify-token/${token}`, {
+          const response = await fetch(`https://cubaunify.uk/verify-token/${token}`, {
               method: 'GET',
               headers: {
                   'Content-Type': 'application/x-www-form-urlencoded',
@@ -52,7 +52,7 @@ export default function Dashboard() {
   
       if (response.ok) {
           setIsLoaded(true);
-          const seller_iitem= await fetch('https://143.47.97.244/get_seller_items',{
+          const seller_iitem= await fetch('https://cubaunify.uk/get_seller_items',{
             method: 'GET',
             headers:{
               'Content-Type': 'application/x-www-form-urlencoded',

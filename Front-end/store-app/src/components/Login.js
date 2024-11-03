@@ -89,7 +89,7 @@ import {useNavigate} from "react-router-dom";
     formDetails.append('username', username);
     formDetails.append('password', password);
     try{
-        const response = await fetch('https://143.47.97.244/token', {
+        const response = await fetch('https://cubaunify.uk/token', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
