@@ -1,3 +1,4 @@
+ /* eslint-disable */
 import { alpha } from '@mui/material/styles';
 import { svgIconClasses } from '@mui/material/SvgIcon';
 import { typographyClasses } from '@mui/material/Typography';
@@ -6,7 +7,6 @@ import { chipClasses } from '@mui/material/Chip';
 import { iconButtonClasses } from '@mui/material/IconButton';
 import { gray, red, green } from '../themePrimitives';
 
-/* eslint-disable import/prefer-default-export */
 export const dataDisplayCustomizations = {
   MuiList: {
     styleOverrides: {

@@ -156,6 +156,53 @@ function Edit(){
         
         }, []);
 
+const validateInputs = () => {
+      
+          let isValid = true;
+          if (name.length === 0 ) {
+            setErrorC('Debe llenar todos los espacios con algo')
+            setErrorName(true)
+            isValid = false;
+          } else {
+            setErrorName(false);
+            setErrorC('');
+          }
+          if (costMN.length === 0 || costUSD.length === 0) {
+              setErrorCostM('Debe llenar todos los espacios con algo')
+              setErrorCost(true)
+              isValid = false;
+            } else {
+              setErrorCost(false);
+              setErrorCostM('');
+            }
+            if (price.length === 0 ) {
+              setErrorPriceM('Debe llenar todos los espacios con algo')
+              setErrorPrice(true)
+              isValid = false;
+            } else {
+              setErrorPrice(false);
+              setErrorPriceM('');
+            }
+            if (catname.length === 0 ) {
+              setErrorCatM('Debe llenar todos los espacios con algo')
+              setErrorCat(true)
+              isValid = false;
+              } else {
+                  setErrorCat(false);
+                  setErrorCatM('')
+              }
+              if (cant.length === 0 ) {
+                  setErrorCantM('Debe llenar todos los espacios con algo')
+                  setErrorCant(true)
+                  isValid = false;
+                } else {
+                  setErrorCant(false);
+                  setErrorCantM('');
+                }
+        
+          return isValid;
+        };
+
 const handleSubmit= async() => {
     console.log('submit:',catname)
     const body= {
@@ -168,6 +215,8 @@ const handleSubmit= async() => {
         "category": catname,
         "seller": item.seller
     }
+    console.log(validateInputs())
+    console.log(body)
     if(validateInputs()){
         try{
             const response = await fetch(`https://cubaunify.uk/edit/item/${item.id}`,{
@@ -179,6 +228,7 @@ const handleSubmit= async() => {
                     body:JSON.stringify(body)
             })
             const dataResponse = await response.json()
+            console.log(dataResponse)
             if(response.ok){
                 console.log('dataResponse:',dataResponse)
                 navigate('/dashboard')
@@ -193,52 +243,7 @@ const handleSubmit= async() => {
       console.log('location param:',body)
 }
 
-const validateInputs = () => {
-      
-    let isValid = true;
-    if (name.length === 0 ) {
-      setErrorC('Debe llenar todos los espacios con algo')
-      setErrorName(true)
-      isValid = false;
-    } else {
-      setErrorName(false);
-      setErrorC('');
-    }
-    if (costMN.length === 0 || costUSD.length === 0) {
-        setErrorCostM('Debe llenar todos los espacios con algo')
-        setErrorCost(true)
-        isValid = false;
-      } else {
-        setErrorCost(false);
-        setErrorCostM('');
-      }
-      if (price.length === 0 ) {
-        setErrorPriceM('Debe llenar todos los espacios con algo')
-        setErrorPrice(true)
-        isValid = false;
-      } else {
-        setErrorPrice(false);
-        setErrorPriceM('');
-      }
-      if (category.length === 0 ) {
-        setErrorCatM('Debe llenar todos los espacios con algo')
-        setErrorCat(true)
-        isValid = false;
-        } else {
-            setErrorCat(false);
-            setErrorCatM('')
-        }
-        if (cant.length === 0 ) {
-            setErrorCantM('Debe llenar todos los espacios con algo')
-            setErrorCant(true)
-            isValid = false;
-          } else {
-            setErrorCant(false);
-            setErrorCantM('');
-          }
-  
-    return isValid;
-  };
+
 
 const handleNewCat
  = async() => {
@@ -528,6 +533,7 @@ const handleDeleteCat = async () => {
     sx={{width:'40%',color:'white',background:'green'}}
     startIcon={<SendRoundedIcon />}
     onClick={() => {handleSubmit()}}
+    onTouchStart={() => {handleSubmit()}}
     >Enviar</Button>
      <Button 
     variant="outlined" 

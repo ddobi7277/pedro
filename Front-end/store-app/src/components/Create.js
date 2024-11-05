@@ -253,8 +253,9 @@ function Create(){
         console.log('newCat:',newcat)
         console.log('catName:',catname)
         console.log('category:',category)
+        console.log(editcat)
 
-         if (catname.length > 0) {
+         if (editcat.length > 0) {
 
           try{
             const response = await fetch('https://cubaunify.uk/create/category',{
@@ -263,7 +264,7 @@ function Create(){
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                     },
-                    body:JSON.stringify({name: catname})
+                    body:JSON.stringify({name: editcat})
               })
               const data = await response.json()
               if (response.ok){
@@ -297,6 +298,7 @@ function Create(){
         console.log('newCat:',newcat)
         console.log('catName:',catname)
         console.log('category:',category)
+        console.log(editcat)
 
         console.log(category)
          if(editcat.length>0){

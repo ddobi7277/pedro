@@ -1,6 +1,6 @@
+ /* eslint-disable */
 import * as React from 'react';
 import { alpha } from '@mui/material/styles';
-
 import { buttonBaseClasses } from '@mui/material/ButtonBase';
 import { dividerClasses } from '@mui/material/Divider';
 import { menuItemClasses } from '@mui/material/MenuItem';
@@ -9,7 +9,6 @@ import { tabClasses } from '@mui/material/Tab';
 import UnfoldMoreRoundedIcon from '@mui/icons-material/UnfoldMoreRounded';
 import { gray, brand } from '../themePrimitives';
 
-/* eslint-disable import/prefer-default-export */
 export const navigationCustomizations = {
   MuiMenuItem: {
     styleOverrides: {

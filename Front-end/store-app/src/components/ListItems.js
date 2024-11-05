@@ -49,14 +49,16 @@ function ListItems({items}){
     const [selectedItem, setSelectedItem] = useState({});
     const [orows,setRows]= useState([]);
     const [open, setOpen] = React.useState(false);
-    const rows = items.map((item) => ({
+
+    const getRows= () => {
+        const rows = items.map((item) => ({
         id: item.id, // Assuming `items` have an `id` property
         name: item.name,
         price:(item.price).toFixed(2),
         price_USD:(item.price_USD).toFixed(2) ,
         cost:item.cost,
         tax:item.tax,
-        show_price:`${(item.price).toFixed(2)}MN - ${(item.price_USD).toFixed(2)}USD`,
+        show_price:`${(item.price).toFixed(2)}MN - ${(item.price/tasaCambio).toFixed(2)}USD`,
         cant: item.cant,
         category: item.category,
         seller:item.seller,
@@ -66,6 +68,8 @@ function ListItems({items}){
         
         // ... other calculations based on item properties
     }));
+    return rows
+    }
     
     const columns = [// Assuming `id` is used in your data
         { field: 'name', headerName: 'Nombre', width: 180,editable:true },
@@ -77,12 +81,11 @@ function ListItems({items}){
         { field: 'revenue', headerName: 'Ganancias Total', width: 240 },
         // ... other columns based on item data
     ];
-
-    const totalMN = Math.round((items.reduce((acc, item) => acc + item.price * item.cant, 0))*100)/100;
-    const totalUSD = Math.round((items.reduce((acc, item) => acc + Math.round((item.price * item.cant) / tasaCambio), 0))*100)/100;
-    const totalGanancias = Math.round((items.reduce((acc, item) => acc + (item.price * item.cant) - ((item.cost + item.tax )* item.cant), 0))*100)/100;
-    const totalInversion= Math.round((items.reduce((acc,item) => acc + (item.cost + item.tax) * item.cant*tasaCambio, 0))*100)/100;
-
+    const totalMN = items.length > 0 ?Math.round((items.reduce((acc, item) => acc + (item.price * item.cant),0))):0;
+    const totalUSD = items.length > 0 ?Math.round((items.reduce((acc, item) => acc + Math.round((item.price * item.cant) / tasaCambio), 0))):0;
+    const totalInversion= items.length > 0 ?Math.round((items.reduce((acc,item) => acc + (item.cost + item.tax) * item.cant*tasaCambio, 0))):0;
+    const totalGanancias = items.length > 0 ?Math.round((items.reduce((acc, item) => acc + (item.price * item.cant) - (((item.cost*item.cant*tasaCambio) + (item.tax*item.cant*tasaCambio) )), 0))):0;
+   
       const [snackbar, setSnackbar] = React.useState(null);
     
       const handleCloseSnackbar = () => setSnackbar(null);
@@ -119,6 +122,7 @@ function ListItems({items}){
         ( async () => {
           await get_categories_by_seller();
         } )();
+        setRows(getRows())
     },[items])
 
     const getDateTimeString = () => {
@@ -132,6 +136,7 @@ function ListItems({items}){
       const handleTasaCambioChange = (e) => {
         const newTasaCambio = e.target.value;
         setTazaCambio(newTasaCambio);
+        setRows(getRows())
         localStorage.setItem('tasaCambio', newTasaCambio);
       };
 
@@ -292,11 +297,24 @@ function ListItems({items}){
             {edit&&
             <Button startIcon={<EditIcon />} onClick={() => {handleEdit()}}>Editar</Button>}
            
-            {edit&&<Button startIcon={<AttachMoneyIcon />} onClick={() => {setOpen(true);console.log(open)}}>Vender</Button>}
+            {edit&&<Button startIcon={<AttachMoneyIcon />} onTouchStart={() => {setOpen(true);console.log(open)}} onClick={() => {setOpen(true);console.log(open)}}>Vender</Button>}
             {}
       <PositionedMenu />
       </ButtonGroup>
-    {<Dialog disableEscapeKeyDown open={open} onClose={(event,reason) => {reason !== 'backdropClick' ? setOpen(false):setOpen(true)}}>
+    {<Dialog disableEscapeKeyDown  open={open} onClose={(event,reason) => {reason !== 'backdropClick' ? setOpen(false):setOpen(true)}}
+      PaperProps={{
+        style: {
+          position: 'fixed', 
+          top: 0, 
+          left: '30%', 
+          transform: 'translateX(-50%)', 
+          margin: 0, 
+          zIndex: 1500 
+
+        }
+      }}
+    
+      >
     <DialogTitle>Elija Genero y cantidad de articulos a vender</DialogTitle>
     <DialogContent >
       <Box component='form' sx={{ display: 'flex', flexWrap: 'wrap' }}>
@@ -348,11 +366,7 @@ function ListItems({items}){
             startIcon ={<AddIcon fontSize="small" />}
           />    
       </Box>
-          
-        
-      
     </Box>
-      
       </Box>
     </DialogContent>
     <DialogActions>
@@ -369,7 +383,7 @@ function ListItems({items}){
     <Paper sx={{ height: '400px', width: columns.length*250 }}>
             
             <DataGrid 
-                rows={rows} 
+                rows={orows} 
                 columns={columns}
                 apiRef={apiRef}
                 initialState={{ pagination: { paginationModel } }}
