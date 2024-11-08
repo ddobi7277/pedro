@@ -1,14 +1,15 @@
 from datetime import datetime, timedelta, timezone
 import jwt
-from .database import SessionLocal
+from database import SessionLocal
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
-from .shcema import UserCreate,ItemCreate,SaleCreate,SaleEdit,CategoryCreate
-from .models import User,Item,Sales,Category
+from shcema import UserCreate,ItemCreate,SaleCreate,SaleEdit,CategoryCreate
+from models import User,Item,Sales,Category
 import uuid
 from sqlalchemy.orm import Session
 from fastapi import Depends,  HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from shcema import UserCreate
 
 
 def get_db():
@@ -85,7 +86,7 @@ async def create_category(db:Session, name:str , username:str):
     db.refresh(db_category)
     return db_category
 
-async def create_sale(db:Session, item:ItemCreate, gender:str, date:str,sale_cant:int):
+async def create_sale(db:Session, item:ItemCreate, gender:str, date:str,sale_cant:int,revenuE,revenuE_USD):
     print(item)
     db_item_sold = Sales(
         id=str(uuid.uuid4()),
@@ -94,8 +95,8 @@ async def create_sale(db:Session, item:ItemCreate, gender:str, date:str,sale_can
         price= item.price,
         price_USD= item.price_USD,
         cant= sale_cant,
-        revenue= round((item.price-((item.tax*300)+(item.cost*300))),2),
-        revenue_USD= round((item.price_USD - (item.tax+item.cost)),2),
+        revenue= round(revenuE,2),
+        revenue_USD= round(revenuE_USD,2),
         gender= gender,
         date= date,
         category= item.category,
@@ -197,18 +198,16 @@ async def authenticate_user(db:Session , username: str, password: str):
     return user
 
 
-async def create_access_token(user:User, expires_delta: timedelta | None = None):
-    user_en = UserCreate.model_validate(user)
+async def create_access_token(user:dict, expires_delta: timedelta | None = None):
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=15)
         
     payload = {
-        'sub': user_en.username,
+        'sub': user,
         'exp': expire
     }
-    
     encoded_jwt = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
@@ -228,9 +227,9 @@ async def get_current_user(db:Session= Depends(get_db), token: str= Depends(oaut
             raise credentials_exception 
     except InvalidTokenError:
         raise credentials_exception
-    user_ob= UserCreate.model_validate(user)
+    #user_ob= UserCreate.model_validate(user)
     if user:
-        return user_ob
+        return user
     else:
         return credentials_exception
 

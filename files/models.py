@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 from  database import Base
 from database import engine
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -15,6 +16,7 @@ class User(Base):
     items = relationship("Item", back_populates="owner")
     sales= relationship("Sales", back_populates="owner")
     category= relationship("Category", back_populates="owner")
+    
     
 class Item(Base):
     __tablename__ = "items"

@@ -1,9 +1,10 @@
 from pydantic import BaseModel,ConfigDict
 
 
+
 class ItemCreate(BaseModel):
     #
-    model_config = ConfigDict(from_attributes=True)
+    #model_config = ConfigDict(from_attributes=True)
     name: str
     cost:float
     price: float
@@ -18,20 +19,22 @@ class CategoryCreate(BaseModel):
         
 
 class UserCreate(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    #model_config = ConfigDict(from_attributes=True)
     username:str
     full_name: str
     hashed_password: str
     
 class SaleCreate(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    #model_config = ConfigDict(from_attributes=True)
     name:str
     cant:int
     gender:str
     date:str
+    revenue:str 
+    revenue_USD:str
     
 class SaleEdit(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    #model_config = ConfigDict(from_attributes=True)
     price:float 
     cant:int
 

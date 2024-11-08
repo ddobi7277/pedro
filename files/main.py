@@ -16,7 +16,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins= ["*"],
+    allow_origins= ["https://www.cubaunify.uk","https://cubalcance.netlify.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -63,6 +63,7 @@ async def  read_users(current_user:User= Depends(get_current_user),db:Session= D
     
 @app.get("/get_seller_items")
 async def get_seller_items(current_user:User= Depends(get_current_user), db:Session= Depends(get_db)):
+    
     if current_user:
         return await get_items_by_seller(current_user.username,db)
         
@@ -128,7 +129,7 @@ async def login(form_data: OAuth2PasswordRequestForm= Depends() , db:Session= De
             )
     access_token_expires = timedelta(minutes= ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token=await create_access_token(
-        user, expires_delta=access_token_expires
+        user=user.username, expires_delta=access_token_expires
     )    
     return {"access_token":access_token, "token_type":"bearer"}
 
@@ -174,7 +175,7 @@ async def create_item_sold(sale:SaleCreate, current_user:User= Depends(get_curre
         item=await get_item_by_name(db=db,name=sale.name)
         item.cant= item.cant-sale.cant
         await update_item(item_id=item.id,item= item,db=db)
-        await create_sale(db, item, sale.gender,sale.date, sale.cant)
+        await create_sale(db, item, sale.gender,sale.date, sale.cant, sale.revenue, sale.revenue_USD)
         return "Sale created"
     else:
         raise HTTPException(
