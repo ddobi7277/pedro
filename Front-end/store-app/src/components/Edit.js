@@ -207,10 +207,10 @@ const handleSubmit= async() => {
     console.log('submit:',catname)
     const body= {
         "name": name,
-        "cost": currency === 'USD'?costUSD:costMN/tasaCambio,
+        "cost": currency === 'USD'?costUSD:(costMN/tasaCambio).toFixed(2),
         "price":price,
-        "tax": item.tax === 0?0:costUSD*0.16,
-        "price_USD": 0,
+        "tax": item.tax === 0?0:(costUSD*0.16).toFixed(2),
+        "price_USD": price/tasaCambio,
         "cant": cant,
         "category": catname,
         "seller": item.seller

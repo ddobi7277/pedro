@@ -30,12 +30,15 @@ class SaleCreate(BaseModel):
     cant:int
     gender:str
     date:str
-    revenue:str 
-    revenue_USD:str
+    revenue:float
+    revenue_USD:float
     
 class SaleEdit(BaseModel):
     #model_config = ConfigDict(from_attributes=True)
     price:float 
     cant:int
+    price_USD:float
+    revenue:float
+    revenue_USD:float
 
  

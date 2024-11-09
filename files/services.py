@@ -72,7 +72,7 @@ async def create_user(db:Session, user: UserCreate):
 
 async def create_item(db:Session, item:ItemCreate, username:str):
     print(item)
-    db_item = Item(id=str(uuid.uuid4()),name= item.name, cost= item.cost, price= item.price, tax=round(item.tax,2),price_USD= round(item.price/300,2), cant= item.cant,category=item.category,seller= username )
+    db_item = Item(id=str(uuid.uuid4()),name= item.name, cost= item.cost, price= item.price, tax=round(item.tax,2),price_USD= item.price_USD, cant= item.cant,category=item.category,seller= username )
     #print('item in create_item',db_item)
     db.add(db_item)
     db.commit()
@@ -86,7 +86,7 @@ async def create_category(db:Session, name:str , username:str):
     db.refresh(db_category)
     return db_category
 
-async def create_sale(db:Session, item:ItemCreate, gender:str, date:str,sale_cant:int,revenuE,revenuE_USD):
+async def create_sale(db:Session, item:ItemCreate, gender:str, date:str,sale_cant:int,revenuE:int,revenuE_USD:int):
     print(item)
     db_item_sold = Sales(
         id=str(uuid.uuid4()),
@@ -95,8 +95,8 @@ async def create_sale(db:Session, item:ItemCreate, gender:str, date:str,sale_can
         price= item.price,
         price_USD= item.price_USD,
         cant= sale_cant,
-        revenue= round(revenuE,2),
-        revenue_USD= round(revenuE_USD,2),
+        revenue= revenuE,
+        revenue_USD= revenuE_USD,
         gender= gender,
         date= date,
         category= item.category,
@@ -152,7 +152,7 @@ async def update_item(item_id:str, item: ItemCreate, db:Session):
     old_item.cost= item.cost+item.tax
     old_item.price= item.price
     old_item.tax= round((item.tax),2)
-    old_item.price_USD= round(item.price,2)
+    old_item.price_USD= item.price_USD
     old_item.cant= item.cant
     old_item.category = item.category
     db.commit()
@@ -170,10 +170,10 @@ async def update_category(db:Session,id:str,name:str):
 async def update_sale(sale_id:str,db:Session, sale:SaleEdit,tax:float):
     old_sale= db.query(Sales).filter(Sales.id == sale_id).first()
     old_sale.price= sale.price
-    old_sale.price_USD= round(sale.price/300,2)
+    old_sale.price_USD= sale.price_USD
     old_sale.cant= sale.cant 
-    old_sale.revenue= round((sale.price-((old_sale.cost*0.16*300)+(old_sale.cost*300))),2)
-    old_sale.revenue_USD= round((sale.price/300 - (tax+old_sale.cost)),2)
+    old_sale.revenue= sale.revenue
+    old_sale.revenue_USD= sale.revenue_USD
     db.commit()
     db.refresh(old_sale)
     return old_sale

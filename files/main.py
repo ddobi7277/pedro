@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from services import *
 from models import User
 from sqlalchemy.orm import Session
-from websockets import WebSocketServerProtocol
+
 app = FastAPI()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -21,28 +21,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
-class WebSocketServer(WebSocketServerProtocol):
-    async def on_connect(self):
-        await self.send("You are connected!")
-
-    async def on_receive(self, text):
-        await self.send(f"You sent: {text}")
-
-    async def on_close(self, code, reason):
-        await self.send(f"Closed: {code}, {reason}")
-
-#User.metadata.create_all(bind=engine)
-@app.websocket("/wss")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    await websocket.send("Connected!")
-
-    while True:
-        data = await websocket.receive()
-        if isinstance(data, str):
-            await websocket.send(f"You sent: {data}")
-        elif isinstance(data, bytes):
-            await websocket.send(f"You sent: {data.decode('utf8')}")
 
 @app.get("/index")
 async def root():
@@ -112,11 +90,14 @@ async def verify_user(token:str,db:Session= Depends(get_db)):
 
 
 @app.post("/register")
-async def register_user(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = await get_user_by_username(db, username=user.username)
-    if db_user:
-        raise HTTPException(status_code=400, detail="Username already exists")
-    return await create_user(db= db, user= user)
+async def register_user(user: UserCreate, db: Session = Depends(get_db), current_user:User= Depends(get_current_user)):
+    if current_user:
+        if current_user.username == 'pedro':
+            db_user = await get_user_by_username(db, username=user.username)
+            if db_user:
+                raise HTTPException(status_code=400, detail="Username already exists")
+            else:
+                return await create_user(db= db, user= user)
 
 @app.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm= Depends() , db:Session= Depends(get_db)):
@@ -175,7 +156,7 @@ async def create_item_sold(sale:SaleCreate, current_user:User= Depends(get_curre
         item=await get_item_by_name(db=db,name=sale.name)
         item.cant= item.cant-sale.cant
         await update_item(item_id=item.id,item= item,db=db)
-        await create_sale(db, item, sale.gender,sale.date, sale.cant, sale.revenue, sale.revenue_USD)
+        await create_sale(db, item, sale.gender,sale.date, sale.cant, revenuE= sale.revenue,  revenuE_USD=sale.revenue_USD)
         return "Sale created"
     else:
         raise HTTPException(

@@ -200,14 +200,15 @@ function Create(){
         console.log('Country',country)
         const item = {
             "name": name,
-            "cost":currency==='USD'?cost:cost/tasaCambio,
+            "cost":currency==='USD'?cost:(cost/tasaCambio).toFixed(2),
             "price": price,
-            "tax": country === 'Cuba'?0:cost*0.16,
-            "price_USD": 0,
+            "tax": country === 'Cuba'?0:(cost*0.16).toFixed(2),
+            "price_USD": price/tasaCambio,
             "cant": cant,
             "category": catname,
             "seller": "seller"
         }
+        console.log(item)
         if(validateInputs()){
             try{
                 const response = await fetch('https://www.cubaunify.uk/creat/item',{

@@ -63,8 +63,8 @@ function ListItems({items}){
         category: item.category,
         seller:item.seller,
         total_price:`${(item.price*item.cant).toFixed(2)} MN - ${(item.price_USD*item.cant).toFixed(2)} USD`,
-        inversion:`${(((item.cost*tasaCambio) + (item.tax*tasaCambio)) * item.cant).toFixed(2)} MN - ${((item.cost+item.tax)*item.cant).toFixed(2)} USD`,
-        revenue:`${((item.price * item.cant) - (((item.cost*tasaCambio) + (item.tax*tasaCambio)) * item.cant)).toFixed(2)} MN - ${(((item.price * item.cant) - (item.cost*item.cant))/tasaCambio).toFixed(2)} USD`
+        inversion:`${((((item.cost+item.tax)*tasaCambio)) * item.cant).toFixed(2)} MN - ${((item.cost+item.tax)*item.cant).toFixed(2)} USD`,
+        revenue:`${((item.price*item.cant) - ((item.cost+item.tax)*tasaCambio)*item.cant).toFixed(2)} MN - ${(((item.price/tasaCambio)*item.cant) - ((item.cost+item.tax)*item.cant)).toFixed(2)} USD`
         
         // ... other calculations based on item properties
     }));
@@ -83,7 +83,7 @@ function ListItems({items}){
     ];
     const totalMN = items.length > 0 ?Math.round((items.reduce((acc, item) => acc + (item.price * item.cant),0))):0;
     const totalUSD = items.length > 0 ?Math.round((items.reduce((acc, item) => acc + Math.round((item.price * item.cant) / tasaCambio), 0))):0;
-    const totalInversion= items.length > 0 ?Math.round((items.reduce((acc,item) => acc + (item.cost + item.tax) * item.cant*tasaCambio, 0))):0;
+    const totalInversion= items.length > 0 ?Math.round((items.reduce((acc,item) => acc + (item.cost + item.tax)* tasaCambio * item.cant, 0))):0;
     const totalGanancias = items.length > 0 ?Math.round((items.reduce((acc, item) => acc + (item.price * item.cant) - (((item.cost*item.cant*tasaCambio) + (item.tax*item.cant*tasaCambio) )), 0))):0;
    
       const [snackbar, setSnackbar] = React.useState(null);
