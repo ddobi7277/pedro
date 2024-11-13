@@ -185,7 +185,7 @@ function ListItems({items}){
         setSell(true)
         return ;
       }
-      if(selectedRow){
+      if(selectedRow && cant > 0){
         console.log('Cantidad:',cant)
       
             const data = {
@@ -193,10 +193,10 @@ function ListItems({items}){
                 'cant':cant,
                 'gender':gender,
                 'date':getDateTimeString(),
-                'revenue':(selectedRow.price - ((selectedRow.cost * tasaCambio) + (selectedRow.tax*tasaCambio) )),
-                'revenue_USD':(selectedRow.price/tasaCambio) - (selectedRow.cost + selectedRow.tax) 
+                'revenue':((selectedRow.price) - ((selectedRow.cost * tasaCambio) + (selectedRow.tax*tasaCambio) ))*cant,
+                'revenue_USD':((selectedRow.price/tasaCambio) - (selectedRow.cost + selectedRow.tax)*cant )
             }
-    
+            console.log(data)
             try{
             const response = await fetch('https://www.cubaunify.uk/create/sale',{
                 method: 'POST',

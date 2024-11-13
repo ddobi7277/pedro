@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket,Depends,  HTTPException, status
+from fastapi import FastAPI, WebSocket,Depends,  HTTPException, status,Request
 from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
 from fastapi import FastAPI,Form
 from shcema import UserCreate,ItemCreate,SaleCreate,SaleEdit,CategoryCreate
@@ -7,53 +7,84 @@ from fastapi.middleware.cors import CORSMiddleware
 from services import *
 from models import User
 from sqlalchemy.orm import Session
+import ipaddress
+import requests
+import subprocess
+
 
 app = FastAPI()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
+def is_cloudflare_request(headers):
+    cf_connecting_ip = headers.get("CF-Connecting-IP")
+    cf_ray = headers.get("CF-RAY")
+    return cf_connecting_ip and cf_ray
+
+
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins= ["https://www.cubaunify.uk","https://cubalcance.netlify.app"],
+    allow_origins= ["https://www.cubaunify.uk","https://cubalcance.netlify.app",'http://localhost:3000'],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
 )
 
 @app.get("/index")
-async def root():
-    return {"message": "Welcome to la Cuevita "}
-
+async def root(request: Request):
+    print(request.headers.get('host'))
+    host_name= request.headers.get('host')
+    headers = request.headers
+    print(host_name)
+    if (is_cloudflare_request(headers)) and ('www.cubaunify.uk' in host_name):
+        if host_name == 'www.cubaunify.uk':
+           return {"message":"Welcome to Cubalcance"}
+    else:
+        return {"message":"What are you trying to do motherfucker???"}
+  
 @app.get("/users",response_model= None)
-async def  read_users(current_user:User= Depends(get_current_user),db:Session= Depends(get_db)):
+async def  read_users(request:Request,current_user:User= Depends(get_current_user),db:Session= Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="You're not authorized to see this",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    if current_user:
-        return await get_users(db,0,100)
-    
+    host_name= request.headers.get('host')
+    headers = request.headers
+    print(host_name)
+    if (is_cloudflare_request(headers)) and ('www.cubaunify.uk' in host_name):
+        if current_user:
+            return await get_users(db,0,100)
+        else:
+            return credentials_exception
     else:
-        return credentials_exception
+        return {"message":"What are you trying to do motherfucker???"}
     
 @app.get("/get_seller_items")
-async def get_seller_items(current_user:User= Depends(get_current_user), db:Session= Depends(get_db)):
-    
-    if current_user:
-        return await get_items_by_seller(current_user.username,db)
+async def get_seller_items(request:Request,current_user:User= Depends(get_current_user), db:Session= Depends(get_db)):
+    host_name= request.headers.get('host')
+    headers = request.headers
+    print(host_name)
+    if (is_cloudflare_request(headers)) and ('www.cubaunify.uk' in host_name):
+        if host_name == 'www.cubaunify.uk':
+           #return {"message":"Welcome to Cubalcance"}
+           if current_user:
+               return await get_items_by_seller(current_user.username,db)
         
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="You don;t have any product or you're not authorized!",
-            headers= {"WWW-Authenticate":"Bearer"}
+           else:
+               raise HTTPException(
+                   status_code=status.HTTP_401_UNAUTHORIZED,
+                   detail="You don;t have any product or you're not authorized!",
+                   headers= {"WWW-Authenticate":"Bearer"}
             )
+    else:
+        return {"message":"What are you trying to do motherfucker???"}
+    
         
 @app.get("/get_seller_sales")
-async def get_seller_sales(current_user:User= Depends(get_current_user), db:Session= Depends(get_db)):
+async def get_seller_sales(request:Request,current_user:User= Depends(get_current_user), db:Session= Depends(get_db)):
     if current_user:
         return await get_sale_by_seller(db,current_user.username)
     else:
@@ -154,6 +185,7 @@ async def create_categories(category:CategoryCreate,db:Session= Depends(get_db),
 async def create_item_sold(sale:SaleCreate, current_user:User= Depends(get_current_user),db:Session= Depends(get_db)):
     if current_user:
         item=await get_item_by_name(db=db,name=sale.name)
+        print(item)
         item.cant= item.cant-sale.cant
         await update_item(item_id=item.id,item= item,db=db)
         await create_sale(db, item, sale.gender,sale.date, sale.cant, revenuE= sale.revenue,  revenuE_USD=sale.revenue_USD)
@@ -298,6 +330,88 @@ async def edit_sales(sale_id,sale:SaleEdit,current_user:User= Depends(get_curren
             headers= {"WWW-Authenticate":"Bearer"}
             )
         
+@app.get("/{path:path}")
+async def catch_all(path: str, request:Request):
+    print(request.client)
+    print(request.headers)
+    if not ('www.cubaunify.uk' in request.headers.get('host')):
+        ip = request.client.host
+        with open("ips.txt", "a") as f:
+                f.write(f"IP:{ip} - hostname:{request.headers.get('host')} - date:{datetime.now()} tryed to find a vulnerability with method:GET - path:{path}"+ "\n")
+                
+        commandD= f"sudo ufw delete allow 8000/tcp"
+        command = f"sudo ufw insert 1 deny from {ip} to any port 8000 proto tcp"
+        commandA = f"sudo ufw allow 8000/tcp"
+        print(command)
+        
+        # Execute command using subprocess.run
+        subprocess.run(commandD, shell=True, check=True)
+        subprocess.run(command, shell=True, check=True)
+        subprocess.run(commandA, shell=True, check=True)
+        
+        raise HTTPException(status_code=404, detail="What are you trying to do motherfucker?")
+
+@app.post("/{path:path}")
+async def catch_all(path: str, request:Request):
+    print(request.client.host)
+    print(request.headers)
+    if not ('www.cubaunify.uk' in request.headers.get('host')):
+        ip = request.client.host
+        with open("ips.txt", "a") as f:
+                f.write(f"IP:{ip} - hostname:{request.headers.get('host')} - date:{datetime.now()} tryed to find a vulnerability with method:POST - path:{path}"+ "\n")
+        commandD= f"sudo ufw delete allow 8000/tcp"
+        command = f"sudo ufw insert 1 deny from {ip} to any port 8000 proto tcp"
+        commandA = f"sudo ufw allow 8000/tcp"
+        print(command)
+        
+        # Execute command using subprocess.run
+        subprocess.run(commandD, shell=True, check=True)
+        subprocess.run(command, shell=True, check=True)
+        subprocess.run(commandA, shell=True, check=True)
+        
+        raise HTTPException(status_code=404, detail="What are you trying to do motherfucker?")
+
+@app.delete("/{path:path}")
+async def catch_all(path: str, request:Request):
+    print(request.client.host)
+    print(request.headers)
+    if not ('www.cubaunify.uk' in request.headers.get('host')):
+        ip = request.client.host
+        with open("ips.txt", "a") as f:
+                f.write(f"IP:{ip} - hostname:{request.headers.get('host')} - date:{datetime.now()} tryed to find a vulnerability with method:DELETE - path:{path}"+ "\n")
+        commandD= f"sudo ufw delete allow 8000/tcp"
+        command = f"sudo ufw insert 1 deny from {ip} to any port 8000 proto tcp"
+        commandA = f"sudo ufw allow 8000/tcp"
+        print(command)
+        
+        # Execute command using subprocess.run
+        subprocess.run(commandD, shell=True, check=True)
+        subprocess.run(command, shell=True, check=True)
+        subprocess.run(commandA, shell=True, check=True)
+        
+        raise HTTPException(status_code=404, detail="What are you trying to do motherfucker?")
+
+@app.put("/{path:path}")
+async def catch_all(path: str, request:Request):
+    print(request.client.host)
+    print(request.headers)
+    if not ('www.cubaunify.uk' in request.headers.get('host')):
+        ip = request.client.host
+        with open("ips.txt", "a") as f:
+                f.write(f"IP:{ip} - hostname:{request.headers.get('host')} - date:{datetime.now()} tryed to find a vulnerability with method:PUT - path:{path}"+ "\n")
+        commandD= f"sudo ufw delete allow 8000/tcp"
+        command = f"sudo ufw insert 1 deny from {ip} to any port 8000 proto tcp"
+        commandA = f"sudo ufw allow 8000/tcp"
+        print(command)
+        
+        # Execute command using subprocess.run
+        subprocess.run(commandD, shell=True, check=True)
+        subprocess.run(command, shell=True, check=True)
+        subprocess.run(commandA, shell=True, check=True)
+        
+        raise HTTPException(status_code=404, detail="What are you trying to do motherfucker?")
+
+
 
             
 

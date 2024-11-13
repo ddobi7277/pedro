@@ -5,6 +5,7 @@ import Create from './components/Create';
 import Login from './components/Login';
 import Welcome from './components/Welcome';
 import Edit from './components/Edit';
+import Sales from './components/Sales';
 
 function App() {
   
@@ -17,6 +18,7 @@ function App() {
           <Route path="/dashboard" element= {<Dashboard />}/>
           <Route path='/edit'  element= {<Edit />}/>
           <Route path='/create' element= {<Create />}/>
+          <Route path='/sales' element= {<Sales />}/>
           </Routes>
       </BrowserRouter>
     </div>

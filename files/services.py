@@ -149,7 +149,7 @@ async def delete_item(item_id:str, db:Session):
 async def update_item(item_id:str, item: ItemCreate, db:Session):
     old_item= db.query(Item).filter(Item.id == item_id).first()
     old_item.name= item.name
-    old_item.cost= item.cost+item.tax
+    old_item.cost= item.cost
     old_item.price= item.price
     old_item.tax= round((item.tax),2)
     old_item.price_USD= item.price_USD
