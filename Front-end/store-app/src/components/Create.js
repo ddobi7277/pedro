@@ -98,7 +98,7 @@ function Create(){
 
    const verifiToken = async () => {
     try{
-        const response = await fetch(`https://www.cubaunify.uk/verify-token/${token}`, {
+        const response = await fetch(` https://reliably-communal-man.ngrok-free.app/verify-token/${token}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -118,7 +118,7 @@ function Create(){
     }
    const get_categories_by_seller = async () => {
     try{
-      const response = await fetch('https://www.cubaunify.uk/get_categories_by_seller', {
+      const response = await fetch(' https://reliably-communal-man.ngrok-free.app/get_categories_by_seller', {
           method: 'GET',
           headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
@@ -211,7 +211,7 @@ function Create(){
         console.log(item)
         if(validateInputs()){
             try{
-                const response = await fetch('https://www.cubaunify.uk/creat/item',{
+                const response = await fetch(' https://reliably-communal-man.ngrok-free.app/creat/item',{
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -259,7 +259,7 @@ function Create(){
          if (editcat.length > 0) {
 
           try{
-            const response = await fetch('https://www.cubaunify.uk/create/category',{
+            const response = await fetch(' https://reliably-communal-man.ngrok-free.app/create/category',{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -304,7 +304,7 @@ function Create(){
         console.log(category)
          if(editcat.length>0){
             try{
-                const response = await fetch(`https://www.cubaunify.uk/edit/category/${category}`,{
+                const response = await fetch(` https://reliably-communal-man.ngrok-free.app/edit/category/${category}`,{
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -332,7 +332,7 @@ function Create(){
         console.log(category)
         if(category.length > 0){
             try{
-                const response = await fetch(`https://www.cubaunify.uk/delete/category/${category}`,{
+                const response = await fetch(` https://reliably-communal-man.ngrok-free.app/delete/category/${category}`,{
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',

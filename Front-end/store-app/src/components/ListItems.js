@@ -92,7 +92,7 @@ function ListItems({items}){
     
     const get_categories_by_seller = async () => {
       try{
-        const response = await fetch('https://www.cubaunify.uk/get_categories_by_seller', {
+        const response = await fetch(' https://reliably-communal-man.ngrok-free.app/get_categories_by_seller', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -198,7 +198,7 @@ function ListItems({items}){
             }
             console.log(data)
             try{
-            const response = await fetch('https://www.cubaunify.uk/create/sale',{
+            const response = await fetch(' https://reliably-communal-man.ngrok-free.app/create/sale',{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -233,7 +233,7 @@ function ListItems({items}){
             console.log(selectedRow)
             let sms= `Vas a eliminar ${selectedRow.name} estas segur@?`
             if(window.confirm(sms)){
-                const response = await fetch(`https://www.cubaunify.uk/delete/items/${selectedRow.id}`,{
+                const response = await fetch(` https://reliably-communal-man.ngrok-free.app/delete/items/${selectedRow.id}`,{
                  method: 'DELETE',
                  headers: {
                      'Content-Type': 'application/json',

@@ -104,7 +104,7 @@ function Edit(){
 
     const verifiToken = async () => {
       try{
-          const response = await fetch(`https://www.cubaunify.uk/verify-token/${token}`, {
+          const response = await fetch(` https://reliably-communal-man.ngrok-free.app/verify-token/${token}`, {
               method: 'GET',
               headers: {
                   'Content-Type': 'application/x-www-form-urlencoded',
@@ -124,7 +124,7 @@ function Edit(){
       }
      const get_categories_by_seller = async () => {
       try{
-        const response = await fetch('https://www.cubaunify.uk/get_categories_by_seller', {
+        const response = await fetch(' https://reliably-communal-man.ngrok-free.app/get_categories_by_seller', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -219,7 +219,7 @@ const handleSubmit= async() => {
     console.log(body)
     if(validateInputs()){
         try{
-            const response = await fetch(`https://www.cubaunify.uk/edit/item/${item.id}`,{
+            const response = await fetch(` https://reliably-communal-man.ngrok-free.app/edit/item/${item.id}`,{
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -252,7 +252,7 @@ const handleNewCat
     } else if (newcat && catname.trim() !== "") {
 
       try{
-        const response = await fetch('https://www.cubaunify.uk/create/category',{
+        const response = await fetch(' https://reliably-communal-man.ngrok-free.app/create/category',{
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -292,7 +292,7 @@ const handleNewCat
     }
     else if(editcat){
         try{
-            const response = await fetch(`https://www.cubaunify.uk/edit/category/${category}`,{
+            const response = await fetch(` https://reliably-communal-man.ngrok-free.app/edit/category/${category}`,{
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -318,7 +318,7 @@ const handleNewCat
 const handleDeleteCat = async () => {
     console.log(category)
     try{
-        const response = await fetch(`https://www.cubaunify.uk/delete/category/${category}`,{
+        const response = await fetch(` https://reliably-communal-man.ngrok-free.app/delete/category/${category}`,{
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

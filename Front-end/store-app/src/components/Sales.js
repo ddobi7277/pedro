@@ -44,7 +44,7 @@ function Sales() {
 
     const verifiToken = async () => {
         try{
-            const response = await fetch(`https://www.cubaunify.uk/verify-token/${localStorage.getItem('token')}`, {
+            const response = await fetch(` https://reliably-communal-man.ngrok-free.app/verify-token/${localStorage.getItem('token')}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -54,7 +54,7 @@ function Sales() {
     
         if (response.ok) {
             //setIsLoaded(true);
-            const seller_iitem= await fetch('https://www.cubaunify.uk/get_seller_sales',{
+            const seller_iitem= await fetch(' https://reliably-communal-man.ngrok-free.app/get_seller_sales',{
               method: 'GET',
               headers:{
                 'Content-Type': 'application/x-www-form-urlencoded',
