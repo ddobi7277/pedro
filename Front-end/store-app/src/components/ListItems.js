@@ -45,7 +45,8 @@ import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import BadgeIcon from '@mui/icons-material/Badge';
 import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
-import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
+import { styled, createTheme, ThemeProvider, useTheme } from '@mui/material/styles';
+import { useMediaQuery } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import { grey, blueGrey } from '@mui/material/colors';
@@ -138,6 +139,10 @@ const StatusChip = styled(Chip)(({ theme }) => ({
 
 const paginationModel = { page: 0, pageSize: 10 };
 function ListItems({ items, username }) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  
   const apiRef = useGridApiRef()
   const navigate = useNavigate();
   const [edit, setEdit] = useState(false);
@@ -224,27 +229,38 @@ function ListItems({ items, username }) {
     {
       field: 'name',
       headerName: 'Product',
-      width: 250,
+      width: isMobile ? 150 : isTablet ? 200 : 250,
       editable: true,
       renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Box
-            sx={{
-              width: 40,
-              height: 40,
-              backgroundColor: '#f0f0f0',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '12px',
-              fontWeight: '600',
-              color: '#666'
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: isMobile ? 1 : 2 }}>
+          {!isMobile && (
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                backgroundColor: '#f0f0f0',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px',
+                fontWeight: '600',
+                color: '#666'
+              }}
+            >
+              IMG
+            </Box>
+          )}
+          <Typography 
+            variant="body2" 
+            fontWeight="500"
+            sx={{ 
+              fontSize: isMobile ? '0.75rem' : '0.875rem',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
             }}
           >
-            IMG
-          </Box>
-          <Typography variant="body2" fontWeight="500">
             {params.value}
           </Typography>
         </Box>
@@ -253,19 +269,25 @@ function ListItems({ items, username }) {
     {
       field: 'sku',
       headerName: 'ID',
-      width: 80,
+      width: isMobile ? 60 : 80,
       editable: false,
       renderCell: (params) => (
-        <Typography variant="body2" color="text.secondary" fontWeight="500">
-          {params.row.id || 'N/A'}
+        <Typography 
+          variant="body2" 
+          color="text.secondary" 
+          fontWeight="500"
+          sx={{ fontSize: isMobile ? '0.7rem' : '0.875rem' }}
+        >
+          {params.row.id ? params.row.id.slice(-4) : 'N/A'}
         </Typography>
       ),
     },
     {
       field: 'status',
       headerName: 'Status',
-      width: 120,
+      width: isMobile ? 90 : 120,
       editable: false,
+      hide: isMobile, // Ocultar en móvil para ahorrar espacio
       renderCell: (params) => {
         const quantity = params.row.cant || 0;
         let status = 'In Stock';
@@ -1259,9 +1281,15 @@ function ListItems({ items, username }) {
 
       <div>
         <Paper sx={{
-          height: '400px',
+          height: { 
+            xs: 'calc(100vh - 200px)', // Móvil: altura basada en viewport
+            sm: 'calc(100vh - 220px)', // Tablet: un poco más de margen
+            md: '500px' // Desktop: altura fija
+          },
           width: '100%',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          mx: { xs: 0, sm: 'auto' }, // Sin márgenes en móvil
+          maxWidth: '100vw' // Nunca exceder el ancho de pantalla
         }}>
           <ThemeProvider theme={inventoryTheme}>
             <DataGrid
@@ -1329,7 +1357,36 @@ function ListItems({ items, username }) {
                 height: '100%',
                 width: '100%',
                 marginBottom: '30px',
-                marginTop: '10px'
+                marginTop: '10px',
+                // Responsive adjustments
+                '& .MuiDataGrid-main': {
+                  minWidth: 0, // Permite scroll horizontal
+                },
+                '& .MuiDataGrid-virtualScroller': {
+                  minWidth: 0,
+                },
+                '& .MuiDataGrid-columnHeaders': {
+                  minHeight: { xs: '40px', sm: '56px' },
+                },
+                '& .MuiDataGrid-cell': {
+                  padding: { xs: '4px 8px', sm: '0 16px' },
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                },
+                '& .MuiDataGrid-row': {
+                  minHeight: { xs: '40px', sm: '52px' },
+                },
+                // Mejor scroll en móvil
+                overflowX: 'auto',
+                '&::-webkit-scrollbar': {
+                  height: '8px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  backgroundColor: '#f1f1f1',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: '#c1c1c1',
+                  borderRadius: '4px',
+                },
               }}
               disableRowSelectionOnClick
               checkboxSelectionVisibleOnly
