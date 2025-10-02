@@ -1,0 +1,10 @@
+<!-- SVG placeholder for products without images -->
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="#f5f5f5"/>
+  <rect x="60" y="70" width="80" height="60" fill="#ddd" rx="4"/>
+  <circle cx="80" cy="90" r="6" fill="#bbb"/>
+  <path d="M70 120 L90 100 L110 110 L130 90" stroke="#bbb" stroke-width="2" fill="none"/>
+  <text x="100" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#999">
+    Sin imagen
+  </text>
+</svg>

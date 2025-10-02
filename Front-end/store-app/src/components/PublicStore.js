@@ -1,0 +1,200 @@
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import {
+    Card,
+    CardContent,
+    CardMedia,
+    Typography,
+    Grid,
+    Container,
+    Box,
+    Chip,
+    Paper,
+    Alert,
+    CircularProgress
+} from '@mui/material';
+import { getApiUrl } from '../config/apiConfig';
+import { styled } from '@mui/material/styles';
+
+const StyledCard = styled(Card)(({ theme }) => ({
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    transition: 'transform 0.2s',
+    '&:hover': {
+        transform: 'translateY(-4px)',
+        boxShadow: theme.shadows[8],
+    },
+}));
+
+const ProductImage = styled(CardMedia)({
+    height: 200,
+    backgroundSize: 'contain',
+    backgroundPosition: 'center',
+});
+
+const PriceChip = styled(Chip)(({ theme }) => ({
+    fontSize: '1rem',
+    fontWeight: 'bold',
+    padding: theme.spacing(1),
+}));
+
+export default function PublicStore() {
+    const { seller } = useParams(); // Get seller from URL parameters
+    const [items, setItems] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [selectedCategory, setSelectedCategory] = useState('');
+
+    useEffect(() => {
+        fetchStoreData();
+    }, [seller]);
+
+    const fetchStoreData = async () => {
+        try {
+            setLoading(true);
+
+            // Fetch items from public endpoint
+            const itemsResponse = await fetch(`${getApiUrl()}/store/${seller}/items`);
+            if (!itemsResponse.ok) {
+                throw new Error('Failed to fetch items');
+            }
+            const itemsData = await itemsResponse.json();
+            setItems(itemsData);
+
+            // Fetch categories from public endpoint
+            const categoriesResponse = await fetch(`${getApiUrl()}/store/${seller}/categories`);
+            if (!categoriesResponse.ok) {
+                throw new Error('Failed to fetch categories');
+            }
+            const categoriesData = await categoriesResponse.json();
+            setCategories(categoriesData);
+
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const filteredItems = selectedCategory
+        ? items.filter(item => item.category === selectedCategory)
+        : items;
+
+    if (loading) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (error) {
+        return (
+            <Container maxWidth="lg" sx={{ mt: 4 }}>
+                <Alert severity="error">
+                    Error loading store: {error}
+                </Alert>
+            </Container>
+        );
+    }
+
+    return (
+        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+            {/* Store Header */}
+            <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
+                <Typography variant="h3" component="h1" gutterBottom>
+                    Tienda de {seller}
+                </Typography>
+                <Typography variant="h6" color="text.secondary">
+                    Productos disponibles: {items.length}
+                </Typography>
+            </Paper>
+
+            {/* Category Filter */}
+            {categories.length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                        Filtrar por categoría:
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                        <Chip
+                            label="Todas"
+                            onClick={() => setSelectedCategory('')}
+                            color={selectedCategory === '' ? 'primary' : 'default'}
+                            variant={selectedCategory === '' ? 'filled' : 'outlined'}
+                        />
+                        {categories.map((category) => (
+                            <Chip
+                                key={category.id}
+                                label={category.name}
+                                onClick={() => setSelectedCategory(category.name)}
+                                color={selectedCategory === category.name ? 'primary' : 'default'}
+                                variant={selectedCategory === category.name ? 'filled' : 'outlined'}
+                            />
+                        ))}
+                    </Box>
+                </Box>
+            )}
+
+            {/* Products Grid */}
+            {filteredItems.length === 0 ? (
+                <Alert severity="info">
+                    No hay productos disponibles en esta tienda.
+                </Alert>
+            ) : (
+                <Grid container spacing={3}>
+                    {filteredItems.map((item) => (
+                        <Grid item xs={12} sm={6} md={4} lg={3} key={item.name}>
+                            <StyledCard>
+                                <ProductImage
+                                    image={item.image ? `${getApiUrl()}/uploads/${item.image}` : '/placeholder-product.svg'}
+                                    title={item.name}
+                                />
+                                <CardContent sx={{ flexGrow: 1 }}>
+                                    <Typography gutterBottom variant="h6" component="h2">
+                                        {item.name}
+                                    </Typography>
+
+                                    {item.detalles && (
+                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                            {item.detalles}
+                                        </Typography>
+                                    )}
+
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                        <PriceChip
+                                            label={`$${item.price} MN`}
+                                            color="primary"
+                                            size="medium"
+                                        />
+                                        <Typography variant="body2" color="text.secondary">
+                                            Stock: {item.cant}
+                                        </Typography>
+                                    </Box>
+
+                                    {/* Show availability status */}
+                                    <Box sx={{ mt: 2 }}>
+                                        {item.cant > 0 ? (
+                                            <Chip label="Disponible" color="success" size="small" />
+                                        ) : (
+                                            <Chip label="Agotado" color="error" size="small" />
+                                        )}
+                                    </Box>
+                                </CardContent>
+                            </StyledCard>
+                        </Grid>
+                    ))}
+                </Grid>
+            )}
+
+            {/* Store Footer */}
+            <Paper elevation={1} sx={{ p: 2, mt: 4, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                    Tienda pública de {seller} - Todos los precios en pesos cubanos (MN)
+                </Typography>
+            </Paper>
+        </Container>
+    );
+}

@@ -3,8 +3,8 @@ import jwt
 from database import SessionLocal
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
-from shcema import UserCreate,ItemCreate,SaleCreate,SaleEdit,CategoryCreate
-from models import User,Item,Sales,Category
+from shcema import UserCreate,ItemCreate,SaleCreate,SaleEdit,CategoryCreate, CustomerCreate, OrderCreate
+from models import User,Item,Sales,Category, Customer, Order
 import uuid
 from sqlalchemy.orm import Session
 from fastapi import Depends,  HTTPException, status
@@ -63,8 +63,14 @@ async def get_items_by_category(db:Session, category:str):
     return db.query(Item).filter(Item.category == category).all()
 
 async def create_user(db:Session, user: UserCreate):
-    hashed_password = pwd_context.hash(user.hashed_password)
-    db_user= User(id= str(uuid.uuid4()),username= user.username, full_name= user.full_name, hashed_password= hashed_password)
+    hashed_password = hash_password(user.hashed_password)
+    db_user= User(
+        id= str(uuid.uuid4()),
+        username= user.username, 
+        full_name= user.full_name, 
+        hashed_password= hashed_password,
+        is_admin= user.is_admin
+    )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -72,7 +78,19 @@ async def create_user(db:Session, user: UserCreate):
 
 async def create_item(db:Session, item:ItemCreate, username:str):
     print(item)
-    db_item = Item(id=str(uuid.uuid4()),name= item.name, cost= item.cost, price= item.price, tax=round(item.tax,2),price_USD= item.price_USD, cant= item.cant,category=item.category,seller= username )
+    db_item = Item(
+        id=str(uuid.uuid4()),
+        name=item.name, 
+        cost=item.cost, 
+        price=item.price, 
+        tax=round(item.tax,2),
+        price_USD=item.price_USD, 
+        cant=item.cant, 
+        image=getattr(item, 'image', None), 
+        category=item.category,
+        seller=username,
+        detalles=getattr(item, 'detalles', None)
+    )
     #print('item in create_item',db_item)
     db.add(db_item)
     db.commit()
@@ -155,6 +173,7 @@ async def update_item(item_id:str, item: ItemCreate, db:Session):
     old_item.price_USD= item.price_USD
     old_item.cant= item.cant
     old_item.category = item.category
+    old_item.detalles = item.detalles  # ¡AGREGAR ESTA LÍNEA!
     db.commit()
     db.refresh(old_item)
     
@@ -186,8 +205,33 @@ async def update_item_categories(db:Session,old_category:str,updated_cat:str):
 
 
 
+def hash_password(password):
+    # Bcrypt tiene un límite de 72 bytes, así que truncamos si es necesario
+    if isinstance(password, str):
+        password = password.encode('utf-8')
+    
+    # Truncar a 72 bytes si es necesario
+    if len(password) > 72:
+        password = password[:72]
+    
+    return pwd_context.hash(password.decode('utf-8') if isinstance(password, bytes) else password)
+
+
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    # Bcrypt tiene un límite de 72 bytes, así que truncamos si es necesario
+    if isinstance(plain_password, str):
+        password_bytes = plain_password.encode('utf-8')
+    else:
+        password_bytes = plain_password
+    
+    # Truncar a 72 bytes si es necesario
+    if len(password_bytes) > 72:
+        password_bytes = password_bytes[:72]
+    
+    # Convertir de vuelta a string para passlib
+    password_to_verify = password_bytes.decode('utf-8') if isinstance(password_bytes, bytes) else password_bytes
+    
+    return pwd_context.verify(password_to_verify, hashed_password)
 
 async def authenticate_user(db:Session , username: str, password: str):
     user =await get_user_by_username(db, username)
@@ -198,14 +242,15 @@ async def authenticate_user(db:Session , username: str, password: str):
     return user
 
 
-async def create_access_token(user:dict, expires_delta: timedelta | None = None):
+async def create_access_token(user_data: dict, expires_delta: timedelta | None = None):
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=15)
         
     payload = {
-        'sub': user,
+        'sub': user_data.get('username') if isinstance(user_data, dict) else user_data,
+        'is_admin': user_data.get('is_admin', False) if isinstance(user_data, dict) else False,
         'exp': expire
     }
     encoded_jwt = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
@@ -232,4 +277,97 @@ async def get_current_user(db:Session= Depends(get_db), token: str= Depends(oaut
         return user
     else:
         return credentials_exception
+
+
+### Customers and Orders helper functions
+async def create_customer(db:Session, customer: 'CustomerCreate'):
+    from shcema import CustomerCreate
+    db_customer = Customer(
+        id=str(uuid.uuid4()),
+        name=customer.name,
+        gender=customer.gender,
+        address=customer.address,
+        payment_method=customer.payment_method,
+        email=customer.email,
+        created_at=datetime.now(timezone.utc).isoformat()
+    )
+    db.add(db_customer)
+    db.commit()
+    db.refresh(db_customer)
+    return db_customer
+
+
+async def get_customer_by_id(db:Session, customer_id:str):
+    return db.query(Customer).filter(Customer.id == customer_id).first()
+
+
+async def get_customer_by_email(db:Session, email:str):
+    return db.query(Customer).filter(Customer.email == email).first()
+
+
+async def create_order(db:Session, order: 'OrderCreate'):
+    from shcema import OrderCreate
+    db_order = Order(
+        id=str(uuid.uuid4()),
+        customer_id=order.customer_id,
+        item_id=order.item_id,
+        item_name=order.item_name,
+        total_cost=order.total_cost,
+        thumbnail=order.thumbnail,
+        date=order.date,
+        status=order.status or 'pending',
+        seller=order.seller
+    )
+    db.add(db_order)
+    db.commit()
+    db.refresh(db_order)
+    return db_order
+
+
+async def get_orders_by_customer(db:Session, customer_id:str):
+    return db.query(Order).filter(Order.customer_id == customer_id).all()
+
+
+async def get_orders_by_seller(db:Session, seller:str):
+    return db.query(Order).filter(Order.seller == seller).all()
+
+# =============================
+# Admin User Management Functions
+# =============================
+
+async def get_all_users(db: Session):
+    """Get all users (admin only)"""
+    return db.query(User).all()
+
+async def get_user_by_id(db: Session, user_id: str):
+    """Get user by ID"""
+    return db.query(User).filter(User.id == user_id).first()
+
+async def update_user(db: Session, user_id: str, user_update: dict):
+    """Update user information (admin only)"""
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if not db_user:
+        return None
+    
+    for key, value in user_update.items():
+        if hasattr(db_user, key) and value is not None:
+            setattr(db_user, key, value)
+    
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+async def delete_user(db: Session, user_id: str):
+    """Delete user (admin only)"""
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if not db_user:
+        return None
+    
+    # Don't allow deleting the main admin user
+    if db_user.username == "pedro":
+        raise ValueError("Cannot delete main admin user")
+    
+    db.delete(db_user)
+    db.commit()
+    return True
 

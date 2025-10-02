@@ -1,0 +1,8 @@
+IP:127.0.0.1 - hostname:127.0.0.1:5000 - date:2025-06-04 12:45:34.338818 tryed to find a vulnerability with method:GET - path:
+IP:127.0.0.1 - hostname:127.0.0.1:5000 - date:2025-06-04 12:45:34.571406 tryed to find a vulnerability with method:GET - path:favicon.ico
+IP:127.0.0.1 - hostname:localhost:8000 - date:2025-10-01 11:54:49.278149 tryed to find a vulnerability with method:GET - path:
+IP:127.0.0.1 - hostname:localhost:8000 - date:2025-10-01 11:54:49.508049 tryed to find a vulnerability with method:GET - path:favicon.ico
+IP:127.0.0.1 - hostname:localhost:8000 - date:2025-10-01 11:58:27.597610 tryed to find a vulnerability with method:GET - path:
+IP:127.0.0.1 - hostname:localhost:8000 - date:2025-10-01 11:58:27.655298 tryed to find a vulnerability with method:GET - path:favicon.ico
+IP:127.0.0.1 - hostname:localhost:8000 - date:2025-10-01 12:00:10.743832 tryed to find a vulnerability with method:GET - path:
+IP:127.0.0.1 - hostname:localhost:8000 - date:2025-10-01 12:01:04.242067 tryed to find a vulnerability with method:GET - path:
