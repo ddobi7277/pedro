@@ -323,11 +323,16 @@ function ListItems({ items, username }) {
     {
       field: 'cant',
       headerName: 'Stock',
-      width: 100,
+      width: isMobile ? 70 : 100,
       editable: true,
       type: 'number',
       renderCell: (params) => (
-        <Typography variant="body2" fontWeight="500" textAlign="center">
+        <Typography 
+          variant="body2" 
+          fontWeight="500" 
+          textAlign="center"
+          sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}
+        >
           {params.value || 0}
         </Typography>
       ),
@@ -335,7 +340,7 @@ function ListItems({ items, username }) {
     {
       field: 'precio',
       headerName: 'Price',
-      width: 200,
+      width: isMobile ? 120 : 200,
       editable: true,
       renderCell: (params) => (
         <Typography variant="body2" fontWeight="500">
@@ -390,8 +395,9 @@ function ListItems({ items, username }) {
     {
       field: 'costo',
       headerName: 'Costo',
-      width: 150,
+      width: isMobile ? 100 : 150,
       editable: true,
+      hide: isMobile, // Ocultar en móvil
       renderCell: (params) => {
         const costo = parseFloat(params.row.inversion_USD) || 0;
         return (
@@ -428,8 +434,9 @@ function ListItems({ items, username }) {
     {
       field: 'sales',
       headerName: 'Sales',
-      width: 100,
+      width: isMobile ? 60 : 100,
       editable: false,
+      hide: isMobile, // Ocultar en móvil
       renderCell: (params) => (
         <Typography variant="body2" fontWeight="500" textAlign="center">
           {/* TODO: Conectar con tabla sales para contar ventas por ID */}
@@ -440,8 +447,9 @@ function ListItems({ items, username }) {
     {
       field: 'inversion',
       headerName: 'Inversion Total',
-      width: 200,
+      width: isMobile ? 120 : 200,
       editable: true,
+      hide: isMobile, // Ocultar en móvil
       renderCell: (params) => {
         return <span>{params.value}</span>;
       },
@@ -495,8 +503,9 @@ function ListItems({ items, username }) {
     {
       field: 'revenue',
       headerName: 'Ganancias Total',
-      width: 200,
+      width: isMobile ? 120 : 200,
       editable: true,
+      hide: isMobile, // Ocultar en móvil
       renderCell: (params) => {
         return <span>{params.value}</span>;
       },
@@ -547,7 +556,7 @@ function ListItems({ items, username }) {
     {
       field: 'detalles',
       headerName: 'Detalles',
-      width: 120,
+      width: isMobile ? 80 : 120,
       editable: false,
       sortable: false,
       renderCell: (params) => {
@@ -598,8 +607,8 @@ function ListItems({ items, username }) {
     {
       field: 'actions',
       type: 'actions',
-      headerName: 'Acciones',
-      width: 100,
+      headerName: isMobile ? '' : 'Acciones',
+      width: isMobile ? 80 : 100,
       cellClassName: 'actions',
       getActions: ({ id }) => {
         const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit || cellEditingRows.has(id);
@@ -1189,16 +1198,53 @@ function ListItems({ items, username }) {
 
   return (
     <div>
-      <ButtonGroup>
-        <Button color="primary" startIcon={<BadgeIcon />} >
-          Welcome / Bienvenid@ : {username}
+      <ButtonGroup 
+        sx={{ 
+          flexWrap: 'wrap',
+          gap: isMobile ? 1 : 0,
+          '& .MuiButton-root': {
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            padding: isMobile ? '6px 12px' : '8px 16px'
+          }
+        }}
+        orientation={isMobile ? 'vertical' : 'horizontal'}
+        variant={isMobile ? 'text' : 'contained'}
+      >
+        <Button 
+          color="primary" 
+          startIcon={!isMobile && <BadgeIcon />}
+          size={isMobile ? 'small' : 'medium'}
+        >
+          {isMobile ? username : `Welcome / Bienvenid@ : ${username}`}
         </Button>
-        <Button color="primary" startIcon={<AddIcon />} onClick={() => { navigate('/create') }}>
-          Crear Producto
+        <Button 
+          color="primary" 
+          startIcon={<AddIcon />} 
+          onClick={() => { navigate('/create') }}
+          size={isMobile ? 'small' : 'medium'}
+        >
+          {isMobile ? 'Crear' : 'Crear Producto'}
         </Button>
-        {(username == 'pedro') && <Button color="primary" startIcon={<GroupAddIcon />} onClick={() => { navigate('/createUser') }}>Registrar Usuario</Button>}
-        {edit && <Button startIcon={<AttachMoneyIcon />} onTouchStart={() => { setOpen(true); console.log(open) }} onClick={() => { setOpen(true); console.log(open) }}>Vender</Button>}
-        { }
+        {(username == 'pedro') && (
+          <Button 
+            color="primary" 
+            startIcon={!isMobile && <GroupAddIcon />} 
+            onClick={() => { navigate('/createUser') }}
+            size={isMobile ? 'small' : 'medium'}
+          >
+            {isMobile ? 'Usuario' : 'Registrar Usuario'}
+          </Button>
+        )}
+        {edit && (
+          <Button 
+            startIcon={<AttachMoneyIcon />} 
+            onTouchStart={() => { setOpen(true); console.log(open) }} 
+            onClick={() => { setOpen(true); console.log(open) }}
+            size={isMobile ? 'small' : 'medium'}
+          >
+            Vender
+          </Button>
+        )}
         <PositionedMenu />
       </ButtonGroup>
       {<Dialog disableEscapeKeyDown open={open} onClose={(event, reason) => { reason !== 'backdropClick' ? setOpen(false) : setOpen(true) }}
@@ -1491,15 +1537,17 @@ function ListItems({ items, username }) {
         <Box
           sx={{
             display: 'flex',
-            gap: 3,
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: isMobile ? 1 : 3,
             justifyContent: 'flex-end',
+            alignItems: isMobile ? 'stretch' : 'center',
             mt: 2,
             mb: 1,
-            px: 2,
+            px: isMobile ? 1 : 2,
             py: 1,
             bgcolor: 'rgba(245,245,245,0.8)',
             borderRadius: 1,
-            fontSize: '14px'
+            fontSize: isMobile ? '12px' : '14px'
           }}
         >
           {/**<List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
@@ -1552,27 +1600,31 @@ function ListItems({ items, username }) {
             </ListItem>
 
           </List> **/}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Avatar sx={{ background: 'red', width: 24, height: 24 }}>
-              <RemoveIcon sx={{ fontSize: 14 }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: isMobile ? 'space-between' : 'flex-start' }}>
+            <Avatar sx={{ background: 'red', width: isMobile ? 20 : 24, height: isMobile ? 20 : 24 }}>
+              <RemoveIcon sx={{ fontSize: isMobile ? 12 : 14 }} />
             </Avatar>
-            <Typography variant="body2" sx={{ color: '#666' }}>
-              Inversiones: <span style={{ color: '#f44336', fontWeight: 600 }}>{`${(totalInversion).toFixed(2)} MN - ${(totalInversion / tasaCambio).toFixed(2)} USD`}</span>
+            <Typography variant="body2" sx={{ color: '#666', fontSize: isMobile ? '0.75rem' : 'inherit' }}>
+              Inversiones: <span style={{ color: '#f44336', fontWeight: 600 }}>
+                {isMobile ? `$${(totalInversion / tasaCambio).toFixed(0)}` : `${(totalInversion).toFixed(2)} MN - ${(totalInversion / tasaCambio).toFixed(2)} USD`}
+              </span>
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Avatar sx={{ background: 'green', width: 24, height: 24 }}>
-              <AttachMoneyIcon sx={{ fontSize: 14 }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: isMobile ? 'space-between' : 'flex-start' }}>
+            <Avatar sx={{ background: 'green', width: isMobile ? 20 : 24, height: isMobile ? 20 : 24 }}>
+              <AttachMoneyIcon sx={{ fontSize: isMobile ? 12 : 14 }} />
             </Avatar>
-            <Typography variant="body2" sx={{ color: '#666' }}>
-              Ganancias: <span style={{ color: totalGanancias >= 0 ? '#4caf50' : '#f44336', fontWeight: 600 }}>{`${totalGanancias.toFixed(2)} MN - ${(totalGanancias / tasaCambio).toFixed(2)} USD`}</span>
+            <Typography variant="body2" sx={{ color: '#666', fontSize: isMobile ? '0.75rem' : 'inherit' }}>
+              Ganancias: <span style={{ color: totalGanancias >= 0 ? '#4caf50' : '#f44336', fontWeight: 600 }}>
+                {isMobile ? `$${(totalGanancias / tasaCambio).toFixed(0)}` : `${totalGanancias.toFixed(2)} MN - ${(totalGanancias / tasaCambio).toFixed(2)} USD`}
+              </span>
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Avatar sx={{ background: 'blue', width: 24, height: 24 }}>
-              <CurrencyExchangeIcon sx={{ fontSize: 14 }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: isMobile ? 'space-between' : 'flex-start' }}>
+            <Avatar sx={{ background: 'blue', width: isMobile ? 20 : 24, height: isMobile ? 20 : 24 }}>
+              <CurrencyExchangeIcon sx={{ fontSize: isMobile ? 12 : 14 }} />
             </Avatar>
-            <Typography variant="body2" sx={{ color: '#666', mr: 1 }}>
+            <Typography variant="body2" sx={{ color: '#666', mr: 1, fontSize: isMobile ? '0.75rem' : 'inherit' }}>
               Tasa de Cambio:
             </Typography>
             <TextField
@@ -1581,15 +1633,15 @@ function ListItems({ items, username }) {
               value={tasaCambio}
               onChange={handleTasaCambioChange}
               sx={{
-                width: '80px',
+                width: isMobile ? '60px' : '80px',
                 '& .MuiOutlinedInput-root': {
-                  height: '32px',
-                  fontSize: '14px',
+                  height: isMobile ? '28px' : '32px',
+                  fontSize: isMobile ? '12px' : '14px',
                   fontWeight: 600,
                   color: '#1976d2'
                 },
                 '& .MuiOutlinedInput-input': {
-                  padding: '6px 8px',
+                  padding: isMobile ? '4px 6px' : '6px 8px',
                   textAlign: 'center'
                 }
               }}
