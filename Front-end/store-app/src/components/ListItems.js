@@ -174,36 +174,49 @@ function ListItems({ items, username }) {
   const [itemToSave, setItemToSave] = useState(null);
 
   // Estado para filas expandidas
-  const [expandedRows, setExpandedRows] = useState(new Set()); const getRows = () => {
-    const rows = items.map((item) => ({
-      id: item.id, // Assuming `items` have an `id` property
-      name: item.name,
-      price_MN: (item.price).toFixed(2),
-      price_USD: (item.price_USD).toFixed(2),
-      precio: `${(item.price).toFixed(2)} MN - ${(item.price_USD).toFixed(2)} USD`,
-      cost: item.cost,
-      tax: item.tax,
-      show_price: `${(item.price).toFixed(2)}MN - ${(item.price / tasaCambio).toFixed(2)}USD`,
-      cant: item.cant,
-      category: item.category,
-      detalles: item.detalles || '', // Include detalles field
-      seller: item.seller,
+  const [expandedRows, setExpandedRows] = useState(new Set());
 
-      // Campos calculados como string display
-      total_price: `${(item.price * item.cant).toFixed(2)} MN - ${(item.price_USD * item.cant).toFixed(2)} USD`,
-      inversion: `${((((item.cost + item.tax) * tasaCambio)) * item.cant).toFixed(2)} MN - ${((item.cost + item.tax) * item.cant).toFixed(2)} USD`,
-      revenue: `${((item.price * item.cant) - ((item.cost + item.tax) * tasaCambio) * item.cant).toFixed(2)} MN - ${(((item.price / tasaCambio) * item.cant) - ((item.cost + item.tax) * item.cant)).toFixed(2)} USD`,
+  const getRows = () => {
+    console.log('🔍 getRows - items recibidos:', items);
 
-      // Campos individuales para edición
-      total_price_MN: (item.price * item.cant).toFixed(2),
-      total_price_USD: (item.price_USD * item.cant).toFixed(2),
-      inversion_MN: ((((item.cost + item.tax) * tasaCambio)) * item.cant).toFixed(2),
-      inversion_USD: ((item.cost + item.tax) * item.cant).toFixed(2),
-      revenue_MN: ((item.price * item.cant) - ((item.cost + item.tax) * tasaCambio) * item.cant).toFixed(2),
-      revenue_USD: (((item.price / tasaCambio) * item.cant) - ((item.cost + item.tax) * item.cant)).toFixed(2)
+    const rows = items.map((item, index) => {
+      // Debug específico para detalles
+      if (index === 0) {
+        console.log('🔍 getRows - procesando primer item:', item);
+        console.log('🔍 getRows - item.detalles:', item.detalles);
+        console.log('🔍 getRows - typeof item.detalles:', typeof item.detalles);
+      }
 
-      // ... other calculations based on item properties
-    }));
+      return {
+        id: item.id, // Assuming `items` have an `id` property
+        name: item.name,
+        price_MN: (item.price).toFixed(2),
+        price_USD: (item.price_USD).toFixed(2),
+        precio: `${(item.price).toFixed(2)} MN - ${(item.price_USD).toFixed(2)} USD`,
+        cost: item.cost,
+        tax: item.tax,
+        show_price: `${(item.price).toFixed(2)}MN - ${(item.price / tasaCambio).toFixed(2)}USD`,
+        cant: item.cant,
+        category: item.category,
+        detalles: item.detalles || '', // Include detalles field
+        seller: item.seller,
+
+        // Campos calculados como string display
+        total_price: `${(item.price * item.cant).toFixed(2)} MN - ${(item.price_USD * item.cant).toFixed(2)} USD`,
+        inversion: `${((((item.cost + item.tax) * tasaCambio)) * item.cant).toFixed(2)} MN - ${((item.cost + item.tax) * item.cant).toFixed(2)} USD`,
+        revenue: `${((item.price * item.cant) - ((item.cost + item.tax) * tasaCambio) * item.cant).toFixed(2)} MN - ${(((item.price / tasaCambio) * item.cant) - ((item.cost + item.tax) * item.cant)).toFixed(2)} USD`,
+
+        // Campos individuales para edición
+        total_price_MN: (item.price * item.cant).toFixed(2),
+        total_price_USD: (item.price_USD * item.cant).toFixed(2),
+        inversion_MN: ((((item.cost + item.tax) * tasaCambio)) * item.cant).toFixed(2),
+        inversion_USD: ((item.cost + item.tax) * item.cant).toFixed(2),
+        revenue_MN: ((item.price * item.cant) - ((item.cost + item.tax) * tasaCambio) * item.cant).toFixed(2),
+        revenue_USD: (((item.price / tasaCambio) * item.cant) - ((item.cost + item.tax) * item.cant)).toFixed(2)
+
+        // ... other calculations based on item properties
+      };
+    });
     return rows
   }
 
@@ -510,6 +523,57 @@ function ListItems({ items, username }) {
       }
     },
     {
+      field: 'detalles',
+      headerName: 'Detalles',
+      width: 120,
+      editable: false,
+      sortable: false,
+      renderCell: (params) => {
+        const isExpanded = expandedRows.has(params.row.id);
+        const hasDetails = params.row.detalles && params.row.detalles.trim() !== '';
+
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Tooltip title={isExpanded ? 'Contraer detalles' : 'Expandir detalles'}>
+              <Box
+                onClick={() => {
+                  setExpandedRows(prev => {
+                    const newSet = new Set(prev);
+                    if (newSet.has(params.row.id)) {
+                      newSet.delete(params.row.id);
+                    } else {
+                      newSet.add(params.row.id);
+                    }
+                    return newSet;
+                  });
+                }}
+                sx={{
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  p: 0.5,
+                  borderRadius: 1,
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
+                  }
+                }}
+              >
+                {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </Box>
+            </Tooltip>
+            {hasDetails && (
+              <FiberManualRecordIcon
+                sx={{
+                  fontSize: '8px',
+                  color: 'primary.main'
+                }}
+              />
+            )}
+          </Box>
+        );
+      },
+    },
+    {
       field: 'actions',
       type: 'actions',
       headerName: 'Acciones',
@@ -597,6 +661,14 @@ function ListItems({ items, username }) {
     localStorage.setItem('totalUSD', totalUSD);
     localStorage.setItem('totalGanancias', totalGanancias);
     localStorage.setItem('totalInversion', totalInversion);
+
+    // Debug: verificar si los items incluyen detalles
+    console.log('🔍 ListItems useEffect - items recibidos:', items);
+    if (items && items.length > 0) {
+      console.log('🔍 Primer item completo:', items[0]);
+      console.log('🔍 ¿Primer item tiene detalles?', 'detalles' in items[0], '- Valor:', items[0].detalles);
+    }
+
     (async () => {
       await get_categories_by_seller();
     })();
@@ -821,7 +893,17 @@ function ListItems({ items, username }) {
       console.log('actualSaveRow - currentRow:', currentRow);
       console.log('actualSaveRow - updateData completo a enviar:', updateData);
 
-      // Llamada a la API para actualizar el producto - CORREGIR URL
+      // Debug adicional
+      console.log('actualSaveRow - URL completa:', `edit/item/${rowId}`);
+      console.log('actualSaveRow - Token:', token ? 'Presente' : 'No presente');
+      console.log('actualSaveRow - apiConfig.currentBaseUrl:', apiConfig.currentBaseUrl);
+      console.log('actualSaveRow - apiConfig.testMode:', apiConfig.testMode);
+      console.log('actualSaveRow - apiConfig.isDevelopment:', apiConfig.isDevelopment);
+      console.log('actualSaveRow - Username actual:', localStorage.getItem('username'));
+      console.log('actualSaveRow - ¿Es admin?:', apiConfig.isUserAdmin());
+      console.log('actualSaveRow - Window location:', window.location.href);
+
+      // Llamada a la API para actualizar el producto
       const response = await apiConfig.fetchWithFallback(`edit/item/${rowId}`, {
         method: 'PUT',
         headers: {
@@ -862,14 +944,32 @@ function ListItems({ items, username }) {
 
         return true;
       } else {
-        const errorData = await response.json();
+        console.log('actualSaveRow - Error response status:', response.status);
+        console.log('actualSaveRow - Error response headers:', response.headers);
+
+        let errorData;
+        try {
+          errorData = await response.json();
+          console.log('actualSaveRow - Error response data:', errorData);
+        } catch (parseError) {
+          console.log('actualSaveRow - Could not parse error response as JSON:', parseError);
+          errorData = { detail: 'Error de servidor no identificado' };
+        }
+
         const errorMessage = typeof errorData.detail === 'string' ? errorData.detail : 'Error al actualizar el producto';
-        setSnackbar({ children: errorMessage, severity: 'error' });
+        setSnackbar({ children: `Error ${response.status}: ${errorMessage}`, severity: 'error' });
         return false;
       }
     } catch (error) {
-      console.error('Error updating product:', error);
-      setSnackbar({ children: 'Error de conexión al actualizar el producto', severity: 'error' });
+      console.error('Error updating product (catch block):', error);
+      console.error('Error type:', error.constructor.name);
+      console.error('Error message:', error.message);
+
+      if (error.message === 'SERVER_ERROR') {
+        setSnackbar({ children: 'Todos los servidores están inaccesibles', severity: 'error' });
+      } else {
+        setSnackbar({ children: `Error de conexión: ${error.message}`, severity: 'error' });
+      }
       return false;
     }
   };
@@ -1161,8 +1261,7 @@ function ListItems({ items, username }) {
         <Paper sx={{
           height: '400px',
           width: '100%',
-          overflow: 'hidden',
-          position: 'relative'
+          overflow: 'hidden'
         }}>
           <ThemeProvider theme={inventoryTheme}>
             <DataGrid
@@ -1243,81 +1342,210 @@ function ListItems({ items, username }) {
               }}
             />
           </ThemeProvider>
-
-          {/* Footer con totales */}
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: '8px',
-              right: '16px',
-              display: 'flex',
-              gap: 3,
-              bgcolor: 'rgba(255,255,255,0.9)',
-              px: 2,
-              py: 1,
-              borderRadius: 1,
-              fontSize: '14px'
-            }}
-          >
-            <Typography variant="body2" sx={{ color: '#666' }}>
-              Inversiones: <span style={{ color: '#1976d2', fontWeight: 600 }}>${(totalInversion / tasaCambio).toFixed(0)}</span>
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#666' }}>
-              Ganancias: <span style={{ color: '#1976d2', fontWeight: 600 }}>${(totalGanancias / tasaCambio).toFixed(0)}</span>
-            </Typography>
-          </Box>
         </Paper>
 
-        <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
-          <ListItem>
-            <ListItemAvatar>
-              <Avatar  >
-                <AttachMoneyIcon color='success' />
-              </Avatar>
-            </ListItemAvatar>
-            <ListItemText primary="Dinero Total:" secondary={`${totalMN.toFixed(2)} MN - ${totalUSD.toFixed(2)} USD`} />
-          </ListItem>
-          <ListItem>
-            <ListItemAvatar>
-              <Avatar sx={{ background: 'red' }}>
-                <RemoveIcon />
-              </Avatar>
-            </ListItemAvatar>
-            <ListItemText
-              primary="Inversión Total General:"
-              secondary={`${(totalInversion).toFixed(2)} MN - ${(totalInversion / tasaCambio).toFixed(2)} USD`}
-              sx={{
-                '& .MuiListItemText-primary': { color: 'error.main' },
-                '& .MuiListItemText-secondary': { color: 'error.main' }
-              }}
-            />
-          </ListItem>
-          <ListItem>
-            <ListItemAvatar>
-              <Avatar sx={{ background: 'Green' }}>
-                <AttachMoneyIcon />
-              </Avatar>
-            </ListItemAvatar>
-            <ListItemText
-              primary="Ganancias General Totales:"
-              secondary={`${totalGanancias.toFixed(2)} MN - ${(totalGanancias / tasaCambio).toFixed(2)} USD`}
-              sx={{
-                '& .MuiListItemText-primary': { color: totalGanancias >= 0 ? 'success.main' : 'error.main' },
-                '& .MuiListItemText-secondary': { color: totalGanancias >= 0 ? 'success.main' : 'error.main' }
-              }}
-            />
-          </ListItem>
-          <ListItem>
-            <ListItemAvatar>
-              <Avatar sx={{ background: 'blue' }}>
-                <CurrencyExchangeIcon />
-              </Avatar>
-            </ListItemAvatar>
-            <ListItemText primary="Tasa de Cambio:" />
-            <TextField value={tasaCambio} onChange={(e) => { handleTasaCambioChange(e) }} />
-          </ListItem>
+        {/* Detalles expandibles */}
+        {Array.from(expandedRows).map(rowId => {
+          const row = orows.find(r => r.id === rowId);
+          if (!row) return null;
 
-        </List>
+          const isInEditMode = rowModesModel[rowId]?.mode === GridRowModes.Edit || cellEditingRows.has(rowId);
+
+          return (
+            <Paper
+              key={`details-${rowId}`}
+              sx={{
+                mt: 1,
+                p: 2,
+                backgroundColor: '#f8f9fa',
+                border: '1px solid #e0e0e0',
+                borderLeft: '4px solid #1976d2'
+              }}
+            >
+              <Typography variant="subtitle2" sx={{ mb: 1, color: '#1976d2', fontWeight: 600 }}>
+                Detalles de: {row.name}
+              </Typography>
+
+              {isInEditMode ? (
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  placeholder="Escribe los detalles del producto aquí..."
+                  defaultValue={row.detalles || ''}
+                  onChange={(e) => {
+                    setEditingChanges(prev => ({
+                      ...prev,
+                      [rowId]: {
+                        ...prev[rowId],
+                        ...row,
+                        detalles: e.target.value
+                      }
+                    }));
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: 'white',
+                    }
+                  }}
+                />
+              ) : (
+                <Box
+                  onClick={() => {
+                    if (!isInEditMode) {
+                      handleEditClick(rowId)();
+                    }
+                  }}
+                  sx={{
+                    minHeight: '60px',
+                    p: 2,
+                    backgroundColor: 'white',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: 1,
+                    cursor: 'pointer',
+                    '&:hover': {
+                      backgroundColor: '#f5f5f5',
+                      borderColor: '#1976d2'
+                    }
+                  }}
+                >
+                  {row.detalles && row.detalles.trim() !== '' ? (
+                    <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                      {row.detalles}
+                    </Typography>
+                  ) : (
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: 'text.secondary',
+                        fontStyle: 'italic'
+                      }}
+                    >
+                      Haz clic para agregar detalles...
+                    </Typography>
+                  )}
+                </Box>
+              )}
+            </Paper>
+          );
+        })}
+
+        {/* Totales como componente separado antes del paginador */}
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 3,
+            justifyContent: 'flex-end',
+            mt: 2,
+            mb: 1,
+            px: 2,
+            py: 1,
+            bgcolor: 'rgba(245,245,245,0.8)',
+            borderRadius: 1,
+            fontSize: '14px'
+          }}
+        >
+          {/**<List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
+            <ListItem>
+              <ListItemAvatar>
+                <Avatar  >
+                  <AttachMoneyIcon color='success' />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText primary="Dinero Total:" secondary={`${totalMN.toFixed(2)} MN - ${totalUSD.toFixed(2)} USD`} />
+            </ListItem>
+            <ListItem>
+              <ListItemAvatar>
+                <Avatar sx={{ background: 'red' }}>
+                  <RemoveIcon />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText
+                primary="Inversión Total General:"
+                secondary={`${(totalInversion).toFixed(2)} MN - ${(totalInversion / tasaCambio).toFixed(2)} USD`}
+                sx={{
+                  '& .MuiListItemText-primary': { color: 'error.main' },
+                  '& .MuiListItemText-secondary': { color: 'error.main' }
+                }}
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemAvatar>
+                <Avatar sx={{ background: 'Green' }}>
+                  <AttachMoneyIcon />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText
+                primary="Ganancias General Totales:"
+                secondary={`${totalGanancias.toFixed(2)} MN - ${(totalGanancias / tasaCambio).toFixed(2)} USD`}
+                sx={{
+                  '& .MuiListItemText-primary': { color: totalGanancias >= 0 ? 'success.main' : 'error.main' },
+                  '& .MuiListItemText-secondary': { color: totalGanancias >= 0 ? 'success.main' : 'error.main' }
+                }}
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemAvatar>
+                <Avatar sx={{ background: 'blue' }}>
+                  <CurrencyExchangeIcon />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText primary="Tasa de Cambio:" />
+              <TextField value={tasaCambio} onChange={(e) => { handleTasaCambioChange(e) }} />
+            </ListItem>
+
+          </List> **/}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Avatar sx={{ background: 'red', width: 24, height: 24 }}>
+              <RemoveIcon sx={{ fontSize: 14 }} />
+            </Avatar>
+            <Typography variant="body2" sx={{ color: '#666' }}>
+              Inversiones: <span style={{ color: '#f44336', fontWeight: 600 }}>{`${(totalInversion).toFixed(2)} MN - ${(totalInversion / tasaCambio).toFixed(2)} USD`}</span>
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Avatar sx={{ background: 'green', width: 24, height: 24 }}>
+              <AttachMoneyIcon sx={{ fontSize: 14 }} />
+            </Avatar>
+            <Typography variant="body2" sx={{ color: '#666' }}>
+              Ganancias: <span style={{ color: totalGanancias >= 0 ? '#4caf50' : '#f44336', fontWeight: 600 }}>{`${totalGanancias.toFixed(2)} MN - ${(totalGanancias / tasaCambio).toFixed(2)} USD`}</span>
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Avatar sx={{ background: 'blue', width: 24, height: 24 }}>
+              <CurrencyExchangeIcon sx={{ fontSize: 14 }} />
+            </Avatar>
+            <Typography variant="body2" sx={{ color: '#666', mr: 1 }}>
+              Tasa de Cambio:
+            </Typography>
+            <TextField
+              size="small"
+              type="number"
+              value={tasaCambio}
+              onChange={handleTasaCambioChange}
+              sx={{
+                width: '80px',
+                '& .MuiOutlinedInput-root': {
+                  height: '32px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#1976d2'
+                },
+                '& .MuiOutlinedInput-input': {
+                  padding: '6px 8px',
+                  textAlign: 'center'
+                }
+              }}
+              inputProps={{
+                min: 1,
+                max: 9999,
+                step: 1
+              }}
+            />
+          </Box>
+        </Box>
+
+
 
         {!!snackbar && (
           <Snackbar

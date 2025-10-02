@@ -42,14 +42,14 @@ class ApiConfig {
     }
 
     getBaseUrl() {
+        // Si testMode está activado desde localhost:3000, ir directo a localhost:8000 (CUALQUIER USUARIO)
+        if (this.isDevelopment && this.testMode) {
+            return this.DEVELOPMENT_URL;
+        }
+
         // Si el usuario no es admin, siempre ir a producción (cubaunify.uk)
         if (!this.isUserAdmin()) {
             return this.PRODUCTION_URL;
-        }
-
-        // Si testMode está activado desde localhost:3000, ir directo a localhost:8000
-        if (this.isDevelopment && this.testMode) {
-            return this.DEVELOPMENT_URL;
         }
 
         // Si estamos en localhost:3000, seguir la secuencia: cubaunify.uk -> localhost:8000
