@@ -11,6 +11,8 @@ class User(Base):
     id = Column(String, primary_key=True)
     username=  Column(String, unique=True, index=True)
     full_name = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=True)  # Nuevo campo para email
+    store_name = Column(String, index=True, nullable=True)  # Nuevo campo para nombre de tienda
     hashed_password = Column(String)
     is_admin = Column(Boolean, default=False)
     
