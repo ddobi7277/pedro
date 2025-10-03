@@ -410,8 +410,9 @@ function ListItems({ items, username }) {
 
   // Función para determinar qué columnas ocultar en diferentes dispositivos (más agresiva)
   const shouldHideColumn = (column) => {
-    // En móvil: mostrar solo columnas esenciales (name, firstImage, cant, precio, actions)
-    const hideOnMobile = ['status', 'costo', 'sales', 'inversion', 'revenue', 'detalles', 'item_id'];
+    // En móvil: NO ocultar ninguna columna para permitir acordeón completo
+    // const hideOnMobile = ['status', 'costo', 'sales', 'inversion', 'revenue', 'detalles', 'item_id'];
+    const hideOnMobile = []; // Mostrar todas las columnas en móvil con acordeón
     const hideOnTablet = ['sales', 'status', 'inversion'];
     const hideOnSmallLaptop = ['sales'];
 
@@ -583,9 +584,24 @@ function ListItems({ items, username }) {
     },
     {
       field: 'sku',
-      headerName: 'ID',
-      width: getColumnWidth(60, 70, 80, 90),
+      headerName: isMobile ? (expandedColumn === 'sku' ? 'ID' : 'ID') : 'ID',
+      width: getColumnWidth(60, 70, 80, 90, 'sku'),
       editable: false,
+      renderHeader: (params) => (
+        <Box
+          onClick={() => handleColumnHeaderClick('sku')}
+          sx={{
+            cursor: isMobile ? 'pointer' : 'default',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            {isMobile ? (expandedColumn === 'sku' ? 'ID' : 'ID') : 'ID'}
+          </Typography>
+        </Box>
+      ),
       renderCell: (params) => (
         <Typography
           variant="body2"
@@ -599,10 +615,25 @@ function ListItems({ items, username }) {
     },
     {
       field: 'status',
-      headerName: 'Status',
-      width: getColumnWidth(90, 100, 120, 140),
+      headerName: isMobile ? (expandedColumn === 'status' ? 'Status' : 'Sts') : 'Status',
+      width: getColumnWidth(90, 100, 120, 140, 'status'),
       editable: false,
       hide: shouldHideColumn('status'),
+      renderHeader: (params) => (
+        <Box
+          onClick={() => handleColumnHeaderClick('status')}
+          sx={{
+            cursor: isMobile ? 'pointer' : 'default',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            {isMobile ? (expandedColumn === 'status' ? 'Status' : 'Sts') : 'Status'}
+          </Typography>
+        </Box>
+      ),
       renderCell: (params) => {
         const quantity = params.row.cant || 0;
         let status = 'In Stock';
@@ -794,21 +825,50 @@ function ListItems({ items, username }) {
     },
     {
       field: 'costo',
-      headerName: 'Costo',
-      width: getColumnWidth(140, 160, 180, 200),
+      headerName: isMobile ? (expandedColumn === 'costo' ? 'Costo' : 'Cst') : 'Costo',
+      width: getColumnWidth(140, 160, 180, 200, 'costo'),
       editable: true,
       hide: shouldHideColumn('costo'),
+      renderHeader: (params) => (
+        <Box
+          onClick={() => handleColumnHeaderClick('costo')}
+          sx={{
+            cursor: isMobile ? 'pointer' : 'default',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            {isMobile ? (expandedColumn === 'costo' ? 'Costo' : 'Cst') : 'Costo'}
+          </Typography>
+        </Box>
+      ),
       renderCell: (params) => {
         const costoUSD = parseFloat(params.row.cost) || 0;  // Usar params.row.cost, no inversion_USD
         const costoMN = (costoUSD * tasaCambio);
 
         if (isMobile) {
-          // En móvil, mostrar solo USD
-          return (
-            <Typography variant="body2" fontWeight="500" sx={{ fontSize: '0.875rem' }}>
-              ${costoUSD.toLocaleString()}
-            </Typography>
-          );
+          if (expandedColumn === 'costo') {
+            // Mostrar formato completo cuando está expandido
+            return (
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <Typography variant="body2" sx={{ fontSize: '0.75rem', lineHeight: 1.2, fontWeight: 500 }}>
+                  {costoMN.toLocaleString()} MN
+                </Typography>
+                <Typography variant="body2" sx={{ fontSize: '0.75rem', lineHeight: 1.2, color: 'text.secondary' }}>
+                  ${costoUSD.toFixed(2)} USD
+                </Typography>
+              </Box>
+            );
+          } else {
+            // Mostrar formato compacto cuando está colapsado
+            return (
+              <Typography variant="body2" fontWeight="500" sx={{ fontSize: '0.75rem' }}>
+                ${costoUSD.toFixed(0)}
+              </Typography>
+            );
+          }
         }
 
         // En tablet/desktop, formato apilado con números completos
@@ -890,10 +950,25 @@ function ListItems({ items, username }) {
     },
     {
       field: 'sales',
-      headerName: 'Sales',
-      width: getColumnWidth(60, 80, 100, 120),
+      headerName: isMobile ? (expandedColumn === 'sales' ? 'Sales' : 'Sls') : 'Sales',
+      width: getColumnWidth(60, 80, 100, 120, 'sales'),
       editable: false,
       hide: shouldHideColumn('sales'),
+      renderHeader: (params) => (
+        <Box
+          onClick={() => handleColumnHeaderClick('sales')}
+          sx={{
+            cursor: isMobile ? 'pointer' : 'default',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            {isMobile ? (expandedColumn === 'sales' ? 'Sales' : 'Sls') : 'Sales'}
+          </Typography>
+        </Box>
+      ),
       renderCell: (params) => (
         <Typography variant="body2" fontWeight="500" textAlign="center">
           {/* TODO: Conectar con tabla sales para contar ventas por ID */}
@@ -903,10 +978,25 @@ function ListItems({ items, username }) {
     },
     {
       field: 'inversion',
-      headerName: 'Inversión',  // Nombre más corto
-      width: getColumnWidth(100, 120, 140, 160), // Aumentado para números completos
+      headerName: isMobile ? (expandedColumn === 'inversion' ? 'Inversión' : 'Inv') : 'Inversión',
+      width: getColumnWidth(100, 120, 140, 160, 'inversion'),
       editable: false, // Cambiado a false - campo calculado automáticamente
       hide: shouldHideColumn('inversion'),
+      renderHeader: (params) => (
+        <Box
+          onClick={() => handleColumnHeaderClick('inversion')}
+          sx={{
+            cursor: isMobile ? 'pointer' : 'default',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            {isMobile ? (expandedColumn === 'inversion' ? 'Inversión' : 'Inv') : 'Inversión'}
+          </Typography>
+        </Box>
+      ),
       renderCell: (params) => {
         // FÓRMULA CORRECTA: Inversión Total = costo * cantidad (SIN tax)
         const changes = editingChanges[params.id] || {};
@@ -986,10 +1076,25 @@ function ListItems({ items, username }) {
     },
     {
       field: 'revenue',
-      headerName: 'Ganancia', // Nombre más corto
-      width: getColumnWidth(100, 120, 140, 160), // Aumentado para números completos
+      headerName: isMobile ? (expandedColumn === 'revenue' ? 'Ganancia' : 'Gan') : 'Ganancia',
+      width: getColumnWidth(100, 120, 140, 160, 'revenue'),
       editable: false, // Cambiado a false - campo calculado automáticamente
       hide: shouldHideColumn('revenue'),
+      renderHeader: (params) => (
+        <Box
+          onClick={() => handleColumnHeaderClick('revenue')}
+          sx={{
+            cursor: isMobile ? 'pointer' : 'default',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            {isMobile ? (expandedColumn === 'revenue' ? 'Ganancia' : 'Gan') : 'Ganancia'}
+          </Typography>
+        </Box>
+      ),
       renderCell: (params) => {
         // FÓRMULA CORRECTA: Ganancias Total = price * cantidad - inversión_total
         const changes = editingChanges[params.id] || {};
@@ -1096,10 +1201,25 @@ function ListItems({ items, username }) {
     },
     {
       field: 'detalles',
-      headerName: 'Detalles',
-      width: getColumnWidth(80, 100, 120, 140),
+      headerName: isMobile ? (expandedColumn === 'detalles' ? 'Detalles' : 'Det') : 'Detalles',
+      width: getColumnWidth(80, 100, 120, 140, 'detalles'),
       editable: false,
       sortable: false,
+      renderHeader: (params) => (
+        <Box
+          onClick={() => handleColumnHeaderClick('detalles')}
+          sx={{
+            cursor: isMobile ? 'pointer' : 'default',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            {isMobile ? (expandedColumn === 'detalles' ? 'Detalles' : 'Det') : 'Detalles'}
+          </Typography>
+        </Box>
+      ),
       renderCell: (params) => {
         const isExpanded = expandedRows.has(params.row.id);
         const hasDetails = params.row.detalles && params.row.detalles.trim() !== '';
@@ -1954,6 +2074,7 @@ function ListItems({ items, username }) {
         }}>
           <ThemeProvider theme={inventoryTheme}>
             <DataGrid
+              key={`datagrid-${expandedColumn || 'normal'}`} // Forzar re-render cuando cambia acordeón
               rows={orows}
               columns={columns}
               apiRef={apiRef}
