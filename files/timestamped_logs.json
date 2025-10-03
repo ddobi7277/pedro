@@ -1,0 +1,141 @@
+{"timestamp": "2025-10-03 15:37:07", "method": "POST", "url": "http://localhost:8000/token", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:37:07", "method": "POST", "url": "http://localhost:8000/token", "status_code": 200, "duration_seconds": 0.23424, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:09", "method": "GET", "url": "http://localhost:8000/logtrack-precise", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:37:09", "method": "GET", "url": "http://localhost:8000/logtrack-precise", "status_code": 200, "duration_seconds": 0.029409, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.002123, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.001999, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.000998, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.001999, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/users", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/users", "status_code": 200, "duration_seconds": 0.00606, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/verify-token/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRybyIsImlzX2FkbWluIjp0cnVlLCJleHAiOjE3NTk1MjIxMTR9.HkU-X8_N1j0dCZuHcNImbes02-IkuN_eE9hL6efiwZ0", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/verify-token/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRybyIsImlzX2FkbWluIjp0cnVlLCJleHAiOjE3NTk1MjIxMTR9.HkU-X8_N1j0dCZuHcNImbes02-IkuN_eE9hL6efiwZ0", "status_code": 200, "duration_seconds": 0.005016, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.001001, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/me", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/me", "status_code": 200, "duration_seconds": 0.018543, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.001547, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/get_seller_items", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:37:10", "method": "GET", "url": "http://localhost:8000/get_seller_items", "status_code": 200, "duration_seconds": 0.009602, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:11", "method": "GET", "url": "http://localhost:8000/me", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:37:11", "method": "GET", "url": "http://localhost:8000/me", "status_code": 200, "duration_seconds": 0.007542, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:13", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:37:13", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.002997, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:15", "method": "GET", "url": "http://localhost:8000/logtrack-precise", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:37:16", "method": "GET", "url": "http://localhost:8000/logtrack-precise", "status_code": 200, "duration_seconds": 0.034147, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:16", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:37:16", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.001997, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:16", "method": "GET", "url": "http://localhost:8000/logtrack", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:37:16", "method": "GET", "url": "http://localhost:8000/logtrack", "status_code": 200, "duration_seconds": 0.015547, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:49", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:37:49", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.001, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:37:49", "method": "GET", "url": "http://localhost:8000/logtrack", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:37:49", "method": "GET", "url": "http://localhost:8000/logtrack", "status_code": 200, "duration_seconds": 0.020506, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:38:04", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:38:04", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.000975, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:38:04", "method": "GET", "url": "http://localhost:8000/users", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:38:04", "method": "GET", "url": "http://localhost:8000/users", "status_code": 200, "duration_seconds": 0.009966, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:38:20", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:38:20", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.001, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:38:20", "method": "GET", "url": "http://localhost:8000/logtrack-precise", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:38:20", "method": "GET", "url": "http://localhost:8000/logtrack-precise", "status_code": 200, "duration_seconds": 0.022911, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:38:47", "method": "POST", "url": "http://localhost:8000/token", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:38:48", "method": "POST", "url": "http://localhost:8000/token", "status_code": 200, "duration_seconds": 0.211287, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:38:50", "method": "GET", "url": "http://localhost:8000/logtrack", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:38:50", "method": "GET", "url": "http://localhost:8000/logtrack", "status_code": 200, "duration_seconds": 0.024402, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:38:52", "method": "GET", "url": "http://localhost:8000/logtrack-precise", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:38:52", "method": "GET", "url": "http://localhost:8000/logtrack-precise", "status_code": 200, "duration_seconds": 0.019152, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:38:54", "method": "GET", "url": "http://localhost:8000/me", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:38:54", "method": "GET", "url": "http://localhost:8000/me", "status_code": 200, "duration_seconds": 0.00657, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:38:56", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:38:56", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.001023, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:38:59", "method": "GET", "url": "http://localhost:8000/admin/users", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:38:59", "method": "GET", "url": "http://localhost:8000/admin/users", "status_code": 200, "duration_seconds": 0.001967, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:39:01", "method": "GET", "url": "http://localhost:8000/items", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:39:01", "method": "GET", "url": "http://localhost:8000/items", "status_code": 200, "duration_seconds": 0.001, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:39:05", "method": "GET", "url": "http://localhost:8000/logtrack-precise", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:39:05", "method": "GET", "url": "http://localhost:8000/logtrack-precise", "status_code": 200, "duration_seconds": 0.029228, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:40:54", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:40:54", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.000999, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:40:54", "method": "GET", "url": "http://localhost:8000/users", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:40:54", "method": "GET", "url": "http://localhost:8000/users", "status_code": 200, "duration_seconds": 0.014618, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:41:51", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:41:51", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.001468, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:41:51", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:41:51", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.001999, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:41:51", "method": "GET", "url": "http://localhost:8000/users", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:41:51", "method": "GET", "url": "http://localhost:8000/users", "status_code": 200, "duration_seconds": 0.020254, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:41:51", "method": "GET", "url": "http://localhost:8000/users", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:41:51", "method": "GET", "url": "http://localhost:8000/users", "status_code": 200, "duration_seconds": 0.007614, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:42:06", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:42:06", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.002018, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:42:06", "method": "GET", "url": "http://localhost:8000/logtrack-precise", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:42:06", "method": "GET", "url": "http://localhost:8000/logtrack-precise", "status_code": 200, "duration_seconds": 0.02278, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:42:41", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:42:41", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.002017, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:42:41", "method": "GET", "url": "http://localhost:8000/users", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:42:41", "method": "GET", "url": "http://localhost:8000/users", "status_code": 200, "duration_seconds": 0.006518, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:43:24", "method": "POST", "url": "http://localhost:8000/token", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:43:24", "method": "POST", "url": "http://localhost:8000/token", "status_code": 200, "duration_seconds": 0.235158, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:43:26", "method": "GET", "url": "http://localhost:8000/admin/users", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:43:26", "method": "GET", "url": "http://localhost:8000/admin/users", "status_code": 200, "duration_seconds": 0.002647, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:43:28", "method": "GET", "url": "http://localhost:8000/logtrack", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:43:28", "method": "GET", "url": "http://localhost:8000/logtrack", "status_code": 200, "duration_seconds": 0.029099, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:45:35", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:45:35", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.001009, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:45:35", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:45:35", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.002998, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:45:35", "method": "GET", "url": "http://localhost:8000/get_categories_by_seller", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:45:35", "method": "GET", "url": "http://localhost:8000/get_categories_by_seller", "status_code": 200, "duration_seconds": 0.013998, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:45:35", "method": "GET", "url": "http://localhost:8000/get_categories_by_seller", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:45:35", "method": "GET", "url": "http://localhost:8000/get_categories_by_seller", "status_code": 200, "duration_seconds": 0.005994, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:45:42", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:45:42", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.001, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:45:42", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:45:42", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.001001, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:45:42", "method": "GET", "url": "http://localhost:8000/users", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:45:42", "method": "GET", "url": "http://localhost:8000/users", "status_code": 200, "duration_seconds": 0.008, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:45:42", "method": "GET", "url": "http://localhost:8000/users", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:45:42", "method": "GET", "url": "http://localhost:8000/users", "status_code": 200, "duration_seconds": 0.010003, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:49:28", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:49:28", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.0, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:49:28", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:49:28", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.001005, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:49:28", "method": "GET", "url": "http://localhost:8000/users", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:49:28", "method": "GET", "url": "http://localhost:8000/users", "status_code": 200, "duration_seconds": 0.015392, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:49:28", "method": "GET", "url": "http://localhost:8000/users", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:49:28", "method": "GET", "url": "http://localhost:8000/users", "status_code": 200, "duration_seconds": 0.002999, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:49:33", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:49:33", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.0, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:49:33", "method": "GET", "url": "http://localhost:8000/users", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:49:33", "method": "GET", "url": "http://localhost:8000/users", "status_code": 200, "duration_seconds": 0.005001, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:49:56", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:49:56", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.002, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:49:56", "method": "GET", "url": "http://localhost:8000/users", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-03 15:49:56", "method": "GET", "url": "http://localhost:8000/users", "status_code": 200, "duration_seconds": 0.00502, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:50:46", "method": "POST", "url": "http://localhost:8000/token", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:50:46", "method": "POST", "url": "http://localhost:8000/token", "status_code": 200, "duration_seconds": 0.224861, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:50:48", "method": "GET", "url": "http://localhost:8000/admin/users", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:51:46", "method": "POST", "url": "http://localhost:8000/token", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:51:46", "method": "POST", "url": "http://localhost:8000/token", "status_code": 200, "duration_seconds": 0.234499, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:51:48", "method": "GET", "url": "http://localhost:8000/admin/users", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:51:48", "method": "GET", "url": "http://localhost:8000/admin/users", "status_code": 200, "duration_seconds": 0.011523, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:51:50", "method": "GET", "url": "http://localhost:8000/admin/users/c5e0a62f-f675-443a-80d5-66dd758a3d64", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:51:50", "method": "GET", "url": "http://localhost:8000/admin/users/c5e0a62f-f675-443a-80d5-66dd758a3d64", "status_code": 200, "duration_seconds": 0.007749, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:51:52", "method": "PUT", "url": "http://localhost:8000/admin/users/c5e0a62f-f675-443a-80d5-66dd758a3d64", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:51:52", "method": "PUT", "url": "http://localhost:8000/admin/users/c5e0a62f-f675-443a-80d5-66dd758a3d64", "status_code": 200, "duration_seconds": 0.03574, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:51:54", "method": "GET", "url": "http://localhost:8000/admin/users/c5e0a62f-f675-443a-80d5-66dd758a3d64", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:51:54", "method": "GET", "url": "http://localhost:8000/admin/users/c5e0a62f-f675-443a-80d5-66dd758a3d64", "status_code": 200, "duration_seconds": 0.010538, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:51:56", "method": "GET", "url": "http://localhost:8000/items", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:51:56", "method": "GET", "url": "http://localhost:8000/items", "status_code": 200, "duration_seconds": 0.002989, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:52:32", "method": "POST", "url": "http://localhost:8000/token", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:52:32", "method": "POST", "url": "http://localhost:8000/token", "status_code": 200, "duration_seconds": 0.206086, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:52:34", "method": "GET", "url": "http://localhost:8000/admin/users", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:52:34", "method": "GET", "url": "http://localhost:8000/admin/users", "status_code": 200, "duration_seconds": 0.007168, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-03 15:52:36", "method": "PUT", "url": "http://localhost:8000/admin/users/c5e0a62f-f675-443a-80d5-66dd758a3d64", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-03 15:52:36", "method": "PUT", "url": "http://localhost:8000/admin/users/c5e0a62f-f675-443a-80d5-66dd758a3d64", "status_code": 200, "duration_seconds": 0.029742, "client_ip": "127.0.0.1"}

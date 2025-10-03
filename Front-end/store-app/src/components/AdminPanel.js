@@ -31,7 +31,10 @@ import {
     Delete as DeleteIcon,
     AdminPanelSettings as AdminIcon,
     Person as PersonIcon,
-    Refresh as RefreshIcon
+    Refresh as RefreshIcon,
+    ExpandMore as ExpandMoreIcon,
+    ExpandLess as ExpandLessIcon,
+    Article as LogIcon
 } from '@mui/icons-material';
 import { apiConfig } from '../config/apiConfig';
 import TestModeToggle from './TestModeToggle';
@@ -50,9 +53,19 @@ export default function AdminPanel() {
     const [editDialog, setEditDialog] = useState({ open: false, user: null });
     const [deleteDialog, setDeleteDialog] = useState({ open: false, user: null });
     const [formData, setFormData] = useState({
+        username: '',
         full_name: '',
         is_admin: false
     });
+
+    // Estados para logs
+    const [logs, setLogs] = useState([]);
+    const [logsLoading, setLogsLoading] = useState(false);
+    const [logsError, setLogsError] = useState('');
+    const [showLogs, setShowLogs] = useState(false);
+
+    // Estado para controlar expansión de User Management
+    const [showUserManagement, setShowUserManagement] = useState(true);
 
     useEffect(() => {
         loadUsers();
@@ -109,8 +122,73 @@ export default function AdminPanel() {
         }
     };
 
+    const loadLogs = async () => {
+        setLogsLoading(true);
+        setLogsError('');
+        try {
+            const token = getValidToken();
+            if (!token) {
+                setLogsError('No valid token found');
+                setLogs([]);
+                setLogsLoading(false);
+                return;
+            }
+
+            // Intentar endpoint con timestamps precisos primero
+            let response;
+            let isPrecise = false;
+
+            try {
+                response = await apiConfig.fetchWithFallback('logtrack-precise', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    isPrecise = data.precise || false;
+                    console.log(`Logs cargados con timestamps ${isPrecise ? 'precisos' : 'estimados'}`);
+                    setLogs(data.logs || []);
+                } else {
+                    throw new Error('Precise endpoint failed');
+                }
+            } catch (preciseError) {
+                console.log('Endpoint preciso no disponible, usando endpoint básico');
+
+                // Fallback al endpoint básico si el preciso no está disponible
+                response = await apiConfig.fetchWithFallback('logtrack', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setLogs(data.logs || []);
+                } else {
+                    const errorData = await response.json();
+                    setLogsError(errorData.detail || 'Error loading logs');
+                    setLogs([]);
+                }
+            }
+        } catch (error) {
+            if (error.message === 'SERVER_ERROR') {
+                setLogsError('No se pudo conectar con ningún servidor disponible.');
+            } else {
+                setLogsError('Error de conexión: ' + error.message);
+            }
+            setLogs([]);
+        } finally {
+            setLogsLoading(false);
+        }
+    };
+
     const handleEditUser = (user) => {
         setFormData({
+            username: user.username,
             full_name: user.full_name,
             is_admin: user.is_admin
         });
@@ -265,76 +343,217 @@ export default function AdminPanel() {
 
                 {/* Users Table */}
                 <Grid item xs={12}>
-                    <Paper sx={{ p: 2 }}>
-                        <Typography variant="h6" component="h2" gutterBottom>
-                            User Management
-                        </Typography>
-
-                        <TableContainer>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Username</TableCell>
-                                        <TableCell>Full Name</TableCell>
-                                        <TableCell>Role</TableCell>
-                                        <TableCell>User ID</TableCell>
-                                        <TableCell align="right">Actions</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {users.map((user) => (
-                                        <TableRow key={user.id}>
-                                            <TableCell>
-                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                    {user.is_admin ? <AdminIcon sx={{ mr: 1, color: 'primary.main' }} /> : <PersonIcon sx={{ mr: 1 }} />}
-                                                    {user.username}
-                                                </Box>
-                                            </TableCell>
-                                            <TableCell>{user.full_name}</TableCell>
-                                            <TableCell>
-                                                <Chip
-                                                    label={user.is_admin ? 'Admin' : 'User'}
-                                                    color={user.is_admin ? 'primary' : 'default'}
-                                                    size="small"
-                                                />
-                                            </TableCell>
-                                            <TableCell>
-                                                <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                                                    {user.id}
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell align="right">
-                                                <IconButton
-                                                    onClick={() => handleEditUser(user)}
-                                                    color="primary"
-                                                    size="small"
-                                                >
-                                                    <EditIcon />
-                                                </IconButton>
-                                                {user.username !== 'pedro' && (
-                                                    <IconButton
-                                                        onClick={() => handleDeleteUser(user)}
-                                                        color="error"
-                                                        size="small"
-                                                    >
-                                                        <DeleteIcon />
-                                                    </IconButton>
-                                                )}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-
-                        {(users?.length === 0) && !loading && (
-                            <Box sx={{ textAlign: 'center', py: 4 }}>
-                                <Typography color="text.secondary">No users found</Typography>
+                    <Card>
+                        <CardContent>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <PersonIcon />
+                                    <Typography variant="h6">
+                                        User Management
+                                    </Typography>
+                                </Box>
+                                <Button
+                                    onClick={() => setShowUserManagement(!showUserManagement)}
+                                    endIcon={showUserManagement ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                                    variant="contained"
+                                    size="small"
+                                >
+                                    {showUserManagement ? 'Hide Users' : 'Show Users'}
+                                </Button>
                             </Box>
-                        )}
-                    </Paper>
+
+                            {showUserManagement && (
+                                <Box sx={{ mt: 2 }}>
+                                    <TableContainer component={Paper}>
+                                        <Table>
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell>Username</TableCell>
+                                                    <TableCell>Full Name</TableCell>
+                                                    <TableCell>Role</TableCell>
+                                                    <TableCell>User ID</TableCell>
+                                                    <TableCell align="right">Actions</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {users.map((user) => (
+                                                    <TableRow key={user.id}>
+                                                        <TableCell>
+                                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                                {user.is_admin ? <AdminIcon sx={{ mr: 1, color: 'primary.main' }} /> : <PersonIcon sx={{ mr: 1 }} />}
+                                                                {user.username}
+                                                            </Box>
+                                                        </TableCell>
+                                                        <TableCell>{user.full_name}</TableCell>
+                                                        <TableCell>
+                                                            <Chip
+                                                                label={user.is_admin ? 'Admin' : 'User'}
+                                                                color={user.is_admin ? 'primary' : 'default'}
+                                                                size="small"
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                                                                {user.id}
+                                                            </Typography>
+                                                        </TableCell>
+                                                        <TableCell align="right">
+                                                            <IconButton
+                                                                onClick={() => handleEditUser(user)}
+                                                                color="primary"
+                                                                size="small"
+                                                            >
+                                                                <EditIcon />
+                                                            </IconButton>
+                                                            {user.username !== 'pedro' && (
+                                                                <IconButton
+                                                                    onClick={() => handleDeleteUser(user)}
+                                                                    color="error"
+                                                                    size="small"
+                                                                >
+                                                                    <DeleteIcon />
+                                                                </IconButton>
+                                                            )}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+
+                                    {(users?.length === 0) && !loading && (
+                                        <Box sx={{ textAlign: 'center', py: 4 }}>
+                                            <Typography color="text.secondary">No users found</Typography>
+                                        </Box>
+                                    )}
+                                </Box>
+                            )}
+                        </CardContent>
+                    </Card>
                 </Grid>
             </Grid>
+
+            {/* Server Logs Section */}
+            <Box sx={{ mt: 4 }}>
+                <Card>
+                    <CardContent>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <LogIcon />
+                                <Typography variant="h6">
+                                    Server Logs
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                <Button
+                                    onClick={loadLogs}
+                                    disabled={logsLoading}
+                                    startIcon={<RefreshIcon />}
+                                    variant="outlined"
+                                    size="small"
+                                >
+                                    Refresh
+                                </Button>
+                                <Button
+                                    onClick={() => setShowLogs(!showLogs)}
+                                    endIcon={showLogs ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                                    variant="contained"
+                                    size="small"
+                                >
+                                    {showLogs ? 'Hide Logs' : 'Show Logs'}
+                                </Button>
+                            </Box>
+                        </Box>
+
+                        {showLogs && (
+                            <Box sx={{ mt: 2 }}>
+                                {logsError && (
+                                    <Alert severity="error" sx={{ mb: 2 }}>
+                                        {logsError}
+                                    </Alert>
+                                )}
+
+                                {logsLoading ? (
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                                        <Typography>Loading logs...</Typography>
+                                    </Box>
+                                ) : logs.length > 0 ? (
+                                    <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
+                                        <Table stickyHeader size="small">
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell>Date</TableCell>
+                                                    <TableCell>Time</TableCell>
+                                                    <TableCell>Type</TableCell>
+                                                    <TableCell>Log Message</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {logs.map((log, index) => (
+                                                    <TableRow key={index} hover>
+                                                        <TableCell>{log.date}</TableCell>
+                                                        <TableCell>
+                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                                {log.time}
+                                                                {log.estimated && (
+                                                                    <Chip
+                                                                        label="~"
+                                                                        size="small"
+                                                                        sx={{
+                                                                            minWidth: '20px',
+                                                                            height: '16px',
+                                                                            fontSize: '10px',
+                                                                            bgcolor: 'warning.light'
+                                                                        }}
+                                                                        title="Timestamp estimado basado en posición en archivo"
+                                                                    />
+                                                                )}
+                                                            </Box>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Chip
+                                                                label={log.type}
+                                                                size="small"
+                                                                color={
+                                                                    log.type === 'INFO' ? 'primary' :
+                                                                        log.type === 'TOKEN' ? 'secondary' :
+                                                                            log.type === 'CLOUDFLARE' ? 'info' :
+                                                                                log.type === 'SYSTEM' ? 'warning' :
+                                                                                    'default'
+                                                                }
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Typography
+                                                                variant="body2"
+                                                                sx={{
+                                                                    fontFamily: 'monospace',
+                                                                    fontSize: '0.75rem',
+                                                                    whiteSpace: 'pre-wrap',
+                                                                    maxWidth: '400px',
+                                                                    overflow: 'hidden',
+                                                                    textOverflow: 'ellipsis'
+                                                                }}
+                                                                title={log.log_msg}
+                                                            >
+                                                                {log.log_msg}
+                                                            </Typography>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                ) : (
+                                    <Box sx={{ textAlign: 'center', p: 3 }}>
+                                        <Typography color="text.secondary">No logs available</Typography>
+                                    </Box>
+                                )}
+                            </Box>
+                        )}
+                    </CardContent>
+                </Card>
+            </Box>
 
             {/* Edit User Dialog */}
             <Dialog open={editDialog.open} onClose={() => setEditDialog({ open: false, user: null })}>
@@ -342,6 +561,16 @@ export default function AdminPanel() {
                 <DialogContent>
                     <TextField
                         autoFocus
+                        margin="dense"
+                        label="Username"
+                        fullWidth
+                        variant="outlined"
+                        value={formData.username}
+                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                        sx={{ mb: 2 }}
+                        helperText="Username will be updated in all related records (items, sales, etc.)"
+                    />
+                    <TextField
                         margin="dense"
                         label="Full Name"
                         fullWidth

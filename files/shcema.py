@@ -47,6 +47,7 @@ class UserRead(BaseModel):
     is_admin: bool
 
 class UserUpdate(BaseModel):
+    username: str | None = None
     full_name: str | None = None
     is_admin: bool | None = None
     

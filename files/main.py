@@ -1,13 +1,19 @@
 from fastapi import FastAPI, WebSocket,Depends,  HTTPException, status,Request, UploadFile, File, Form
 from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
 from fastapi import FastAPI,Form
-from shcema import UserCreate,ItemCreate,SaleCreate,SaleEdit,CategoryCreate, PublicItemResponse
-from datetime import timedelta
+from shcema import UserCreate,ItemCreate,SaleCreate,SaleEdit,CategoryCreate, PublicItemResponse, UserUpdate, UserRead
+from datetime import timedelta, datetime
 from fastapi.middleware.cors import CORSMiddleware
 from services import *
 from models import User
 from fastapi.staticfiles import StaticFiles
 import os
+import logging
+import json
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 import uuid as _uuid
 from sqlalchemy.orm import Session
 import ipaddress
@@ -18,6 +24,51 @@ import json
 
 
 app = FastAPI()
+
+# Middleware para logging con timestamps precisos
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = datetime.now()
+    
+    # Log request
+    log_entry = {
+        "timestamp": start_time.strftime("%Y-%m-%d %H:%M:%S"),
+        "method": request.method,
+        "url": str(request.url),
+        "client_ip": request.client.host if request.client else "unknown",
+        "user_agent": request.headers.get("user-agent", "unknown")
+    }
+    
+    # Write to timestamped log file
+    try:
+        with open("timestamped_logs.json", "a", encoding="utf-8") as f:
+            f.write(json.dumps(log_entry) + "\n")
+    except Exception as e:
+        logger.error(f"Failed to write to timestamped log: {e}")
+    
+    # Process request
+    response = await call_next(request)
+    
+    # Log response
+    end_time = datetime.now()
+    duration = (end_time - start_time).total_seconds()
+    
+    response_entry = {
+        "timestamp": end_time.strftime("%Y-%m-%d %H:%M:%S"),
+        "method": request.method,
+        "url": str(request.url),
+        "status_code": response.status_code,
+        "duration_seconds": duration,
+        "client_ip": request.client.host if request.client else "unknown"
+    }
+    
+    try:
+        with open("timestamped_logs.json", "a", encoding="utf-8") as f:
+            f.write(json.dumps(response_entry) + "\n")
+    except Exception as e:
+        logger.error(f"Failed to write response log: {e}")
+    
+    return response
 
 # serve uploaded images from /uploads
 os.makedirs("uploads", exist_ok=True)
@@ -131,6 +182,298 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
             detail="You're not authorized!",
             headers={"WWW-Authenticate": "Bearer"}
         )
+
+# =============================
+# Admin User Management Endpoints
+# =============================
+
+@app.get("/admin/users")
+async def get_all_users_admin(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Get all users (admin only)"""
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+    
+    users = await get_all_users(db)
+    # Convert SQLAlchemy objects to dict format
+    users_data = []
+    for user in users:
+        users_data.append({
+            "id": user.id,
+            "username": user.username,
+            "full_name": user.full_name,
+            "is_admin": user.is_admin
+        })
+    return {"users": users_data}
+
+@app.get("/admin/users/{user_id}")
+async def get_user_by_id_admin(user_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Get user by ID (admin only)"""
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+    
+    user = await get_user_by_id(db=db, user_id=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {
+        "id": user.id,
+        "username": user.username,
+        "full_name": user.full_name,
+        "is_admin": user.is_admin
+    }
+
+@app.put("/admin/users/{user_id}")
+async def update_user_admin(user_id: str, user_update: UserUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Update user information (admin only)"""
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+    
+    # No permitir cambiar username a pedro si ya existe otro usuario con ese nombre
+    if user_update.username:
+        existing_user = db.query(User).filter(User.username == user_update.username, User.id != user_id).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Username already exists")
+    
+    update_data = user_update.dict(exclude_unset=True)
+    
+    # Si se está cambiando el username, propagar cambios a otras tablas
+    if 'username' in update_data:
+        old_user = await get_user_by_id(db=db, user_id=user_id)
+        if old_user and old_user.username != update_data['username']:
+            await propagate_username_change(db=db, old_username=old_user.username, new_username=update_data['username'])
+    
+    updated_user = await update_user(db=db, user_id=user_id, user_update=update_data)
+    if not updated_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {
+        "id": updated_user.id,
+        "username": updated_user.username,
+        "full_name": updated_user.full_name,
+        "is_admin": updated_user.is_admin
+    }
+
+@app.delete("/admin/users/{user_id}")
+async def delete_user_admin(user_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Delete user (admin only)"""
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+    
+    try:
+        result = await delete_user(db=db, user_id=user_id)
+        if not result:
+            raise HTTPException(status_code=404, detail="User not found")
+        return {"message": "User deleted successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/logtrack")
+async def get_server_logs(current_user: User = Depends(get_current_user)):
+    """Get the last 50 server logs - Admin only"""
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+    
+    try:
+        import os
+        from datetime import datetime, timedelta
+        
+        log_file_path = "nohup.out"
+        if not os.path.exists(log_file_path):
+            return {"logs": [], "error": "Log file not found"}
+        
+        # Get file modification time for reference
+        file_stat = os.stat(log_file_path)
+        file_mod_time = datetime.fromtimestamp(file_stat.st_mtime)
+        
+        # Read last 100 lines to ensure we get at least 50 complete log entries
+        with open(log_file_path, 'r', encoding='utf-8', errors='ignore') as file:
+            lines = file.readlines()
+            last_lines = lines[-100:] if len(lines) > 100 else lines
+        
+        # Calculate approximate time per line (rough estimation)
+        time_per_line = 0
+        if len(last_lines) > 1:
+            # Assume the last 100 lines span roughly the last few minutes
+            # This is an estimation - we'll refine this with better logging later
+            time_per_line = 60 / len(last_lines)  # Rough seconds per line
+        
+        # Parse logs into structured format
+        parsed_logs = []
+        current_log = ""
+        line_index = 0
+        
+        for line in last_lines:
+            line = line.strip()
+            if not line:
+                continue
+                
+            # Estimate timestamp based on file modification time and line position
+            estimated_time = file_mod_time - timedelta(seconds=(len(last_lines) - line_index) * time_per_line)
+            line_index += 1
+        
+        for line in last_lines:
+            line = line.strip()
+            if not line:
+                continue
+                
+            # Check if line starts with INFO: (new log entry)
+            if line.startswith("INFO:"):
+                # Save previous log if exists
+                if current_log:
+                    parsed_logs.append({
+                        "date": estimated_time.strftime("%Y-%m-%d"),
+                        "time": estimated_time.strftime("%H:%M:%S"),
+                        "log_msg": current_log.strip(),
+                        "type": "INFO",
+                        "estimated": True
+                    })
+                
+                # Start new log
+                current_log = line
+            elif line.startswith("[TOKEN]"):
+                # Handle TOKEN debug logs separately
+                parsed_logs.append({
+                    "date": estimated_time.strftime("%Y-%m-%d"),
+                    "time": estimated_time.strftime("%H:%M:%S"),
+                    "log_msg": line,
+                    "type": "TOKEN",
+                    "estimated": True
+                })
+            elif line.startswith("2025-") and "INF" in line:
+                # Handle Cloudflare tunnel logs - these have real timestamps!
+                try:
+                    # Extract timestamp from Cloudflare logs (format: 2025-06-04T16:20:16Z)
+                    timestamp_str = line.split(' ')[0]
+                    if 'T' in timestamp_str and 'Z' in timestamp_str:
+                        parsed_timestamp = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+                        parsed_logs.append({
+                            "date": parsed_timestamp.strftime("%Y-%m-%d"),
+                            "time": parsed_timestamp.strftime("%H:%M:%S"),
+                            "log_msg": line,
+                            "type": "CLOUDFLARE",
+                            "estimated": False  # Real timestamp!
+                        })
+                    else:
+                        parsed_logs.append({
+                            "date": estimated_time.strftime("%Y-%m-%d"),
+                            "time": estimated_time.strftime("%H:%M:%S"),
+                            "log_msg": line,
+                            "type": "SYSTEM",
+                            "estimated": True
+                        })
+                except:
+                    parsed_logs.append({
+                        "date": estimated_time.strftime("%Y-%m-%d"),
+                        "time": estimated_time.strftime("%H:%M:%S"),
+                        "log_msg": line,
+                        "type": "SYSTEM",
+                        "estimated": True
+                    })
+            else:
+                # Append to current log (multi-line log entry) or handle standalone
+                if current_log and not line.startswith(("Starting", "Stopping", "pedro", "cubaunify.uk")):
+                    current_log += "\n" + line
+                else:
+                    # Handle lines that are standalone messages
+                    parsed_logs.append({
+                        "date": estimated_time.strftime("%Y-%m-%d"),
+                        "time": estimated_time.strftime("%H:%M:%S"),
+                        "log_msg": line,
+                        "type": "DEBUG",
+                        "estimated": True
+                    })
+        
+        # Don't forget the last log entry
+        if current_log:
+            parsed_logs.append({
+                "date": file_mod_time.strftime("%Y-%m-%d"),
+                "time": file_mod_time.strftime("%H:%M:%S"),
+                "log_msg": current_log.strip(),
+                "type": "INFO",
+                "estimated": True
+            })
+        
+        # Return last 50 entries
+        return {"logs": parsed_logs[-50:], "total": len(parsed_logs)}
+        
+    except Exception as e:
+        return {"logs": [], "error": f"Error reading logs: {str(e)}"}
+
+@app.get("/logtrack-precise")
+async def get_precise_server_logs(current_user: User = Depends(get_current_user)):
+    """Get the last 50 server logs with precise timestamps - Admin only"""
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+    
+    try:
+        timestamped_log_path = "timestamped_logs.json"
+        
+        # If precise log file doesn't exist, fall back to nohup.out parsing
+        if not os.path.exists(timestamped_log_path):
+            return {"logs": [], "error": "Precise log file not found. Server needs to be restarted with new logging.", "fallback_available": True}
+        
+        # Read last 100 lines from timestamped logs
+        logs = []
+        try:
+            with open(timestamped_log_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+                last_lines = lines[-100:] if len(lines) > 100 else lines
+                
+                for line in last_lines:
+                    try:
+                        log_data = json.loads(line.strip())
+                        # Parse timestamp back to date/time
+                        timestamp_str = log_data.get('timestamp', '')
+                        if timestamp_str:
+                            dt = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+                            
+                            # Format log message based on log type
+                            if 'status_code' in log_data:
+                                # Response log
+                                log_msg = f"{log_data['method']} {log_data['url']} - {log_data['status_code']} ({log_data['duration_seconds']:.3f}s)"
+                                log_type = "HTTP_RESPONSE"
+                            else:
+                                # Request log  
+                                log_msg = f"{log_data['method']} {log_data['url']} from {log_data['client_ip']}"
+                                log_type = "HTTP_REQUEST"
+                            
+                            logs.append({
+                                "date": dt.strftime("%Y-%m-%d"),
+                                "time": dt.strftime("%H:%M:%S"),
+                                "log_msg": log_msg,
+                                "type": log_type,
+                                "estimated": False,  # These are real timestamps!
+                                "client_ip": log_data.get('client_ip', 'unknown'),
+                                "raw_data": log_data
+                            })
+                    except json.JSONDecodeError:
+                        continue
+                        
+        except Exception as e:
+            return {"logs": [], "error": f"Error reading timestamped logs: {str(e)}"}
+        
+        return {"logs": logs[-50:], "total": len(logs), "precise": True}
+        
+    except Exception as e:
+        return {"logs": [], "error": f"Error processing precise logs: {str(e)}"}
     
 @app.get("/get_seller_items")
 async def get_seller_items(request:Request,current_user:User= Depends(get_current_user), db:Session= Depends(get_db)):
@@ -682,4 +1025,49 @@ async def catch_all(path: str, request:Request):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import logging
+    
+    # Configure logging to include timestamps
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    
+    # Configure uvicorn with timestamps
+    uvicorn.run(
+        app, 
+        host="0.0.0.0", 
+        port=8000,
+        log_config={
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {
+                "default": {
+                    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                    "datefmt": "%Y-%m-%d %H:%M:%S",
+                },
+                "access": {
+                    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                    "datefmt": "%Y-%m-%d %H:%M:%S",
+                },
+            },
+            "handlers": {
+                "default": {
+                    "formatter": "default",
+                    "class": "logging.StreamHandler",
+                    "stream": "ext://sys.stdout",
+                },
+                "access": {
+                    "formatter": "access",
+                    "class": "logging.StreamHandler",
+                    "stream": "ext://sys.stdout",
+                },
+            },
+            "loggers": {
+                "uvicorn": {"handlers": ["default"], "level": "INFO"},
+                "uvicorn.error": {"level": "INFO"},
+                "uvicorn.access": {"handlers": ["access"], "level": "INFO", "propagate": False},
+            },
+        }
+    )

@@ -8,6 +8,7 @@ from shcema import UserCreate,ItemCreate,ItemEdit,SaleCreate,SaleEdit,CategoryCr
 from models import User,Item,Sales,Category, Customer, Order
 import uuid
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from fastapi import Depends,  HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from shcema import UserCreate
@@ -426,4 +427,38 @@ async def delete_user(db: Session, user_id: str):
     db.delete(db_user)
     db.commit()
     return True
+
+async def propagate_username_change(db: Session, old_username: str, new_username: str):
+    """Propagate username changes to all related tables"""
+    try:
+        # Update items table - seller field
+        db.execute(
+            text("UPDATE items SET seller = :new_username WHERE seller = :old_username"),
+            {"new_username": new_username, "old_username": old_username}
+        )
+        
+        # Update sales table - seller field  
+        db.execute(
+            text("UPDATE sales SET seller = :new_username WHERE seller = :old_username"),
+            {"new_username": new_username, "old_username": old_username}
+        )
+        
+        # Update categories table - category_of field
+        db.execute(
+            text("UPDATE categories SET category_of = :new_username WHERE category_of = :old_username"),
+            {"new_username": new_username, "old_username": old_username}
+        )
+        
+        # Update orders table - seller field
+        db.execute(
+            text("UPDATE orders SET seller = :new_username WHERE seller = :old_username"),
+            {"new_username": new_username, "old_username": old_username}
+        )
+        
+        db.commit()
+        return True
+        
+    except Exception as e:
+        db.rollback()
+        raise e
 
