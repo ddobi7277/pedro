@@ -383,17 +383,18 @@ function ListItems({ items, username }) {
 
   // Función helper para calcular anchos responsive (optimizados para evitar scroll)
   const getColumnWidth = (mobileWidth, tabletWidth, laptopWidth, desktopWidth = laptopWidth) => {
-    // Reducir todos los anchos para evitar scroll horizontal
-    if (isMobile) return mobileWidth * 0.8;
-    if (isTablet) return tabletWidth * 0.9;
+    // Reducir significativamente los anchos para móvil para evitar scroll horizontal
+    if (isMobile) return mobileWidth * 0.6; // Más agresivo para móvil
+    if (isTablet) return tabletWidth * 0.85;
     if (isSmallLaptop) return laptopWidth * 0.95;
     return isLargeLaptop ? desktopWidth : laptopWidth;
   };
 
   // Función para determinar qué columnas ocultar en diferentes dispositivos (más agresiva)
   const shouldHideColumn = (column) => {
-    const hideOnMobile = ['status', 'costo', 'sales', 'inversion', 'revenue', 'detalles'];
-    const hideOnTablet = ['sales', 'status'];
+    // En móvil: mostrar solo columnas esenciales (name, firstImage, cant, precio, actions)
+    const hideOnMobile = ['status', 'costo', 'sales', 'inversion', 'revenue', 'detalles', 'item_id'];
+    const hideOnTablet = ['sales', 'status', 'inversion'];
     const hideOnSmallLaptop = ['sales'];
 
     if (isMobile && hideOnMobile.includes(column)) return true;
@@ -428,7 +429,7 @@ function ListItems({ items, username }) {
     {
       field: 'firstImage',
       headerName: 'Photo',
-      width: getColumnWidth(60, 70, 80, 90),
+      width: getColumnWidth(50, 70, 80, 90), // Más estrecho en móvil
       editable: false,
       sortable: false,
       filterable: false,
@@ -458,8 +459,8 @@ function ListItems({ items, username }) {
                 src={getImageUrl(params.value)}
                 alt="Product"
                 style={{
-                  width: 40,
-                  height: 40,
+                  width: isMobile ? 32 : 40,   // Imágenes más pequeñas en móvil
+                  height: isMobile ? 32 : 40,  // Imágenes más pequeñas en móvil
                   objectFit: 'cover',
                   borderRadius: '4px',
                   border: '1px solid #e0e0e0',
@@ -1057,7 +1058,7 @@ function ListItems({ items, username }) {
       field: 'actions',
       type: 'actions',
       headerName: isMobile ? '' : 'Acciones',
-      width: getColumnWidth(60, 70, 80, 90), // Reducido significativamente
+      width: getColumnWidth(45, 70, 80, 90), // Más estrecho en móvil
       cellClassName: 'actions',
       getActions: ({ id }) => {
         const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit || cellEditingRows.has(id);
@@ -1823,7 +1824,7 @@ function ListItems({ items, username }) {
       <div>
         <Paper sx={{
           height: {
-            xs: 'calc(100vh - 140px)', // Móvil: más compacto
+            xs: 'calc(100vh - 120px)', // Móvil: más espacio para contenido
             sm: 'calc(100vh - 160px)', // Tablet: más compacto  
             md: 'calc(100vh - 180px)', // Desktop: más compacto
             lg: '550px', // Pantallas grandes: altura moderada
@@ -1832,7 +1833,7 @@ function ListItems({ items, username }) {
           width: '100%',
           overflow: 'hidden',
           mx: { xs: 0, sm: 'auto' },
-          maxWidth: '100vw',
+          maxWidth: { xs: '100vw', sm: '100%' }, // En móvil usar todo el ancho disponible
           // Responsive borders and shadows
           borderRadius: { xs: 0, sm: 1, md: 2 },
           boxShadow: {
@@ -1842,6 +1843,8 @@ function ListItems({ items, username }) {
           },
           // Responsive margins - más compactos
           margin: { xs: 0, sm: 0.5, md: 1 },
+          // Evitar overflow en móvil
+          overflowX: { xs: 'auto', sm: 'hidden' },
         }}>
           <ThemeProvider theme={inventoryTheme}>
             <DataGrid
@@ -1853,23 +1856,23 @@ function ListItems({ items, username }) {
               onRowModesModelChange={setRowModesModel}
 
               // Configuración responsive
-              columnBuffer={isMobile ? 2 : 5}
-              columnThreshold={isMobile ? 2 : 5}
-              rowHeight={isMobile ? 60 : isTablet ? 65 : 70}
-              headerHeight={isMobile ? 48 : 56}
+              columnBuffer={isMobile ? 1 : 5} // Reducir buffer para móvil
+              columnThreshold={isMobile ? 1 : 5}
+              rowHeight={isMobile ? 50 : isTablet ? 65 : 70} // Más compacto en móvil
+              headerHeight={isMobile ? 45 : 56} // Header más compacto
 
               // Paginación responsive
               initialState={{
                 pagination: {
                   paginationModel: {
-                    pageSize: isMobile ? 5 : isTablet ? 8 : 10,
+                    pageSize: isMobile ? 8 : isTablet ? 8 : 10, // Más elementos por página en móvil
                   },
                 },
               }}
-              pageSizeOptions={isMobile ? [5, 10] : isTablet ? [5, 8, 15] : [5, 10, 15, 25]}
+              pageSizeOptions={isMobile ? [5, 8, 15] : isTablet ? [5, 8, 15] : [5, 10, 15, 25]}
 
               // Scroll responsive
-              scrollbarSize={isMobile ? 8 : 12}
+              scrollbarSize={isMobile ? 6 : 12} // Scrollbar más delgado en móvil
 
               // Density responsive
               density={isMobile ? 'compact' : isTablet ? 'standard' : 'comfortable'}
@@ -1877,6 +1880,7 @@ function ListItems({ items, username }) {
               // Mejoras para dispositivos táctiles
               disableColumnResize={isMobile}
               disableColumnReorder={isMobile}
+              disableVirtualization={isMobile} // Deshabilitar virtualización en móvil para mejor performance
               hideFooterSelectedRowCount={isMobile}
 
               // Toolbar responsive
@@ -1956,20 +1960,22 @@ function ListItems({ items, username }) {
                   overflow: 'auto',
                 },
                 '& .MuiDataGrid-columnHeaders': {
-                  minHeight: isMobile ? '48px' : '56px',
+                  minHeight: isMobile ? '45px' : '56px', // Más compacto
                   '& .MuiDataGrid-columnHeader': {
-                    fontSize: isMobile ? '0.75rem' : '0.875rem',
+                    fontSize: isMobile ? '0.7rem' : '0.875rem', // Texto más pequeño
                     fontWeight: 600,
+                    padding: isMobile ? '4px' : '8px', // Menos padding
                   }
                 },
                 '& .MuiDataGrid-cell': {
-                  padding: isMobile ? '4px 8px' : isTablet ? '6px 12px' : '8px 16px',
+                  padding: isMobile ? '2px 4px' : isTablet ? '6px 12px' : '8px 16px', // Menos padding en móvil
                   fontSize: isMobile ? '0.75rem' : isTablet ? '0.8rem' : '0.875rem',
                   display: 'flex',
                   alignItems: 'center',
                 },
                 '& .MuiDataGrid-row': {
-                  minHeight: isMobile ? '60px' : isTablet ? '65px' : '70px',
+                  minHeight: isMobile ? '50px' : isTablet ? '65px' : '70px', // Más compacto en móvil
+                  maxHeight: isMobile ? '50px' : 'auto', // Limitar altura en móvil
                   '&:hover': {
                     backgroundColor: 'rgba(0, 0, 0, 0.04)',
                   }
@@ -2204,7 +2210,7 @@ function ListItems({ items, username }) {
             </Avatar>
             <Typography variant="body2" sx={{ color: '#666', fontSize: isMobile ? '0.875rem' : 'inherit' }}>
               Gan. Proximadas: <span style={{ color: totalGananciasProximadas >= 0 ? '#4caf50' : '#f44336', fontWeight: 600 }}>
-                {isMobile ? `$${(totalGananciasProximadas / tasaCambio).toFixed(0)}` : `${(totalGananciasProximadas * tasaCambio).toFixed(2)} MN - ${totalGananciasProximadas.toFixed(2)} USD`}
+                {isMobile ? `$${totalGananciasProximadas.toFixed(0)}` : `${(totalGananciasProximadas * tasaCambio).toFixed(2)} MN - ${totalGananciasProximadas.toFixed(2)} USD`}
               </span>
             </Typography>
           </Box>
