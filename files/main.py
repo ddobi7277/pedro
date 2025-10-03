@@ -231,7 +231,11 @@ async def get_user_by_id_admin(user_id: str, current_user: User = Depends(get_cu
 @app.put("/admin/users/{user_id}")
 async def update_user_admin(user_id: str, user_update: UserUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Update user information (admin only)"""
+    logger.info(f"[ADMIN] User update request received. User ID: {user_id}, Admin: {current_user.username if current_user else 'None'}")
+    logger.info(f"[ADMIN] Update data: {user_update.dict(exclude_unset=True)}")
+    
     if not current_user or not current_user.is_admin:
+        logger.warning(f"[ADMIN] Unauthorized user update attempt. User: {current_user.username if current_user else 'None'}, is_admin: {current_user.is_admin if current_user else 'None'}")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required"
@@ -241,20 +245,25 @@ async def update_user_admin(user_id: str, user_update: UserUpdate, current_user:
     if user_update.username:
         existing_user = db.query(User).filter(User.username == user_update.username, User.id != user_id).first()
         if existing_user:
+            logger.warning(f"[ADMIN] Username conflict: {user_update.username} already exists")
             raise HTTPException(status_code=400, detail="Username already exists")
     
     update_data = user_update.dict(exclude_unset=True)
+    logger.info(f"[ADMIN] Processed update data: {update_data}")
     
     # Si se está cambiando el username, propagar cambios a otras tablas
     if 'username' in update_data:
         old_user = await get_user_by_id(db=db, user_id=user_id)
         if old_user and old_user.username != update_data['username']:
+            logger.info(f"[ADMIN] Username change detected: {old_user.username} -> {update_data['username']}")
             await propagate_username_change(db=db, old_username=old_user.username, new_username=update_data['username'])
     
     updated_user = await update_user(db=db, user_id=user_id, user_update=update_data)
     if not updated_user:
+        logger.error(f"[ADMIN] User not found: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
     
+    logger.info(f"[ADMIN] User update successful: {updated_user.username}")
     return {
         "id": updated_user.id,
         "username": updated_user.username,

@@ -36,7 +36,7 @@ import {
     ExpandLess as ExpandLessIcon,
     Article as LogIcon
 } from '@mui/icons-material';
-import { apiConfig } from '../config/apiConfig';
+import { apiConfig, getApiUrl } from '../config/apiConfig';
 import TestModeToggle from './TestModeToggle';
 
 export default function AdminPanel() {
@@ -200,6 +200,10 @@ export default function AdminPanel() {
     };
 
     const saveUserChanges = async () => {
+        console.log('saveUserChanges called!');
+        console.log('formData:', formData);
+        console.log('editDialog.user:', editDialog.user);
+
         setLoading(true);
         setError('');
         setSuccess('');
@@ -207,10 +211,15 @@ export default function AdminPanel() {
         try {
             const token = getValidToken();
             if (!token) {
+                console.log('No valid token found');
                 setError('No valid token found');
                 setLoading(false);
                 return;
             }
+
+            console.log('Token found, making request...');
+            console.log('URL:', `${getApiUrl()}/admin/users/${editDialog.user.id}`);
+            console.log('Request body:', JSON.stringify(formData));
 
             const response = await fetch(`${getApiUrl()}/admin/users/${editDialog.user.id}`, {
                 method: 'PUT',
@@ -221,15 +230,21 @@ export default function AdminPanel() {
                 body: JSON.stringify(formData)
             });
 
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+
             if (response.ok) {
+                console.log('Update successful!');
                 setSuccess('User updated successfully');
                 setEditDialog({ open: false, user: null });
                 loadUsers();
             } else {
                 const errorData = await response.json();
+                console.log('Error response:', errorData);
                 setError(errorData.detail || 'Error updating user');
             }
         } catch (err) {
+            console.log('Fetch error:', err);
             setError('Error connecting to server');
         } finally {
             setLoading(false);
