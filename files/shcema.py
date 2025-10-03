@@ -15,6 +15,18 @@ class ItemCreate(BaseModel):
     category:str| None= None
     seller:str | None= None
     detalles: str | None = None
+
+class ItemEdit(BaseModel):
+    """Esquema para edición de items - sin campo images"""
+    name: str
+    cost:float
+    price: float
+    tax: float | None = 0
+    price_USD:float
+    cant:int
+    category:str| None= None
+    seller:str | None= None
+    detalles: str | None = None
     
 class CategoryCreate(BaseModel):
     name: str
@@ -105,5 +117,9 @@ class PublicItemResponse(BaseModel):
     cant: int
     image: str | None = None
     detalles: str | None = None
+
+class ImageRemove(BaseModel):
+    """Modelo para eliminar una imagen específica"""
+    image_url: str
 
  

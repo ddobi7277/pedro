@@ -4,7 +4,7 @@ import json
 from database import SessionLocal
 # from jwt.exceptions import InvalidTokenError  # This import may not be needed
 from passlib.context import CryptContext
-from shcema import UserCreate,ItemCreate,SaleCreate,SaleEdit,CategoryCreate, CustomerCreate, OrderCreate
+from shcema import UserCreate,ItemCreate,ItemEdit,SaleCreate,SaleEdit,CategoryCreate, CustomerCreate, OrderCreate
 from models import User,Item,Sales,Category, Customer, Order
 import uuid
 from sqlalchemy.orm import Session
@@ -184,20 +184,34 @@ async def delete_item(item_id:str, db:Session):
     db.delete(item)
     db.commit()
     
-async def update_item(item_id:str, item: ItemCreate, db:Session):
-    old_item= db.query(Item).filter(Item.id == item_id).first()
-    old_item.name= item.name
-    old_item.cost= item.cost
-    old_item.price= item.price
-    old_item.tax= round((item.tax),2)
-    old_item.price_USD= item.price_USD
-    old_item.cant= item.cant
-    old_item.category = item.category
-    old_item.detalles = item.detalles  # ¡AGREGAR ESTA LÍNEA!
-    db.commit()
-    db.refresh(old_item)
+async def update_item(item_id:str, item: ItemEdit, db:Session):
+    # Obtener el item actual
+    old_item = db.query(Item).filter(Item.id == item_id).first()
+    if not old_item:
+        return None
     
-    return old_item
+    # Actualizar SOLO los campos que están en ItemEdit, NO tocar images
+    old_item.name = item.name
+    old_item.cost = item.cost
+    old_item.price = item.price
+    old_item.tax = round((item.tax), 2)
+    old_item.price_USD = item.price_USD
+    old_item.cant = item.cant
+    old_item.category = item.category
+    old_item.detalles = item.detalles
+    
+    # IMPORTANTE: NO modificar old_item.images para evitar el error SQLite
+    # El campo images permanece exactamente como estaba
+    
+    # Hacer el commit explícito
+    try:
+        db.commit()
+        db.refresh(old_item)
+        return old_item
+    except Exception as e:
+        db.rollback()
+        print(f"Error en update_item: {e}")
+        raise e
 
 async def update_category(db:Session,id:str,name:str):
     db_category = db.query(Category).filter(Category.id == id).first()

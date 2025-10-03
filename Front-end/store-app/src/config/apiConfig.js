@@ -47,12 +47,12 @@ class ApiConfig {
             return this.DEVELOPMENT_URL;
         }
 
-        // TEMPORAL: Durante desarrollo, activar testMode automáticamente para evitar CORS
-        if (this.isDevelopment) {
-            this.testMode = true;
-            localStorage.setItem('testMode', 'true');
-            return this.DEVELOPMENT_URL;
-        }
+        // COMENTADO: Durante desarrollo, activar testMode automáticamente para evitar CORS
+        // if (this.isDevelopment) {
+        //     this.testMode = true;
+        //     localStorage.setItem('testMode', 'true');
+        //     return this.DEVELOPMENT_URL;
+        // }
 
         // Si el usuario no es admin, siempre ir a producción (cubaunify.uk)
         if (!this.isUserAdmin()) {
@@ -197,12 +197,14 @@ class ApiConfig {
                 this.serverError = false;
                 return response;
             } else {
-                // Si hay error HTTP (404, 500, etc.), marcar como offline
+                // Si hay error HTTP (404, 500, etc.), marcar como offline y intentar fallback
                 const baseUrl = new URL(url).origin;
                 this.urlStatus[baseUrl] = 'offline';
 
-                // Si es un usuario admin y estamos en desarrollo, intentar cambio automático
-                if (this.isUserAdmin() && this.isDevelopment) {
+                console.log(`❌ HTTP Error ${response.status} en ${baseUrl}, intentando fallback...`);
+
+                // Intentar fallback automático cuando hay errores HTTP desde cubaunify.uk
+                if (baseUrl === this.PRODUCTION_URL && this.isDevelopment) {
                     const switched = await this.handleServerFailure(baseUrl);
 
                     // Si se cambió exitosamente, intentar el request con el nuevo servidor
@@ -212,11 +214,11 @@ class ApiConfig {
                             const newResponse = await fetch(newUrl, options);
 
                             if (newResponse.ok) {
-                                console.log('✅ Request successful after automatic server switch');
+                                console.log('✅ Request successful after automatic server switch (HTTP error)');
                                 return newResponse;
                             }
                         } catch (retryError) {
-                            console.log('❌ Retry after server switch also failed:', retryError);
+                            console.log('❌ Retry after server switch also failed (HTTP error):', retryError);
                         }
                     }
                 }
@@ -226,10 +228,10 @@ class ApiConfig {
         } catch (error) {
             // Error de red (servidor no disponible)
             // Intentar fallback automático en cualquier entorno cuando cubaunify.uk falla
-            const shouldTryFallback = error.name === 'TypeError' || 
-                                    error.message.includes('Failed to fetch') ||
-                                    error.message.includes('ERR_FAILED');
-            
+            const shouldTryFallback = error.name === 'TypeError' ||
+                error.message.includes('Failed to fetch') ||
+                error.message.includes('ERR_FAILED');
+
             if (shouldTryFallback && this.currentBaseUrl === this.PRODUCTION_URL) {
                 console.log('🔄 Cubaunify.uk no disponible, intentando fallback automático...');
                 const switched = await this.handleServerFailure(this.currentBaseUrl);
@@ -264,7 +266,7 @@ class ApiConfig {
                 // En desarrollo (localhost:3000), intentar cambiar a localhost:8000
                 if (this.isDevelopment) {
                     console.log('🔄 Intentando cambio a localhost:8000...');
-                    
+
                     // Verificar si localhost:8000 está disponible
                     const localAvailable = await this.checkConnectivityOnly(this.DEVELOPMENT_URL);
 
@@ -287,18 +289,18 @@ class ApiConfig {
                 } else {
                     // En producción, no hay servidor de fallback disponible
                     console.log('❌ En producción: servidor principal no disponible y no hay fallback');
-                    
+
                     // Marcar el servidor como offline
                     this.urlStatus[this.PRODUCTION_URL] = 'offline';
-                    
+
                     // Disparar evento para mostrar mensaje al usuario
                     window.dispatchEvent(new CustomEvent('serverError', {
-                        detail: { 
-                            message: 'Servidor principal no disponible. Inténtalo más tarde.', 
-                            server: this.PRODUCTION_URL 
+                        detail: {
+                            message: 'Servidor principal no disponible. Inténtalo más tarde.',
+                            server: this.PRODUCTION_URL
                         }
                     }));
-                    
+
                     return false;
                 }
             }

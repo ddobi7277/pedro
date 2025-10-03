@@ -28,6 +28,12 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import FormControl from '@mui/material/FormControl';
 import SendIcon from '@mui/icons-material/Send';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
@@ -181,6 +187,121 @@ function ListItems({ items, username }) {
   // Estado para filas expandidas
   const [expandedRows, setExpandedRows] = useState(new Set());
 
+  // Estados para el modal de imágenes
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [showImageUploader, setShowImageUploader] = useState(false);
+
+  // Función para abrir el modal de imágenes
+  const openImageModal = (images, startIndex = 0, item = null) => {
+    if (images && images.length > 0) {
+      setSelectedImages(images);
+      setCurrentImageIndex(startIndex);
+      setSelectedItem(item);
+      setImageModalOpen(true);
+    }
+  };
+
+  // Función para navegar entre imágenes
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % selectedImages.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + selectedImages.length) % selectedImages.length);
+  };
+
+  // Función para agregar nuevas imágenes
+  const handleAddImages = async (event) => {
+    const files = Array.from(event.target.files);
+    if (files.length === 0 || !selectedItem) return;
+
+    setIsUploadingImages(true);
+    const formData = new FormData();
+    files.forEach(file => formData.append('files', file));
+
+    try {
+      const response = await fetch(`http://localhost:8000/items/${selectedItem.id}/add-images`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
+        body: formData
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        // Mostrar mensaje de éxito y recargar página
+        alert(`${result.new_images.length} imágenes agregadas exitosamente`);
+        window.location.reload();
+      } else {
+        throw new Error('Error al subir imágenes');
+      }
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      alert('Error al subir las imágenes');
+    } finally {
+      setIsUploadingImages(false);
+      // Limpiar el input
+      event.target.value = '';
+    }
+  };
+
+  // Función para eliminar una imagen
+  const handleRemoveImage = async () => {
+    if (!selectedItem || selectedImages.length === 0) return;
+
+    const currentImageUrl = selectedImages[currentImageIndex];
+    if (!currentImageUrl) return;
+
+    // Extraer solo el nombre del archivo de la URL
+    // De "/uploads/pedro/pedro_CadenadePlata_660acfb1.png" obtener "pedro_CadenadePlata_660acfb1.png"
+    const imageName = currentImageUrl.split('/').pop();
+
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar la imagen: ${imageName}?`)) {
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('image_name', imageName);
+
+      const response = await fetch(`http://localhost:8000/items/${selectedItem.id}/delete-image`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
+        body: formData
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        // Actualizar las imágenes en el modal
+        const updatedImages = selectedImages.filter(img => img !== currentImageUrl);
+        setSelectedImages(updatedImages);
+
+        // Ajustar el índice actual si es necesario
+        if (currentImageIndex >= updatedImages.length && updatedImages.length > 0) {
+          setCurrentImageIndex(updatedImages.length - 1);
+        } else if (updatedImages.length === 0) {
+          setImageModalOpen(false);
+        }
+
+        // Mostrar mensaje de éxito y recargar página
+        alert(`Imagen eliminada exitosamente: ${result.deleted_file}`);
+        window.location.reload();
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Error al eliminar imagen');
+      }
+    } catch (error) {
+      console.error('Error removing image:', error);
+      alert('Error al eliminar la imagen: ' + error.message);
+    }
+  };
+
   const getRows = () => {
     console.log('🔍 getRows - items recibidos:', items);
 
@@ -205,6 +326,8 @@ function ListItems({ items, username }) {
         category: item.category,
         detalles: item.detalles || '', // Include detalles field
         seller: item.seller,
+        images: item.images || [], // Agregar imágenes
+        firstImage: item.images && item.images.length > 0 ? item.images[0] : null, // Primera imagen para mostrar
 
         // Campos calculados como string display
         total_price: `${(item.price * item.cant).toFixed(2)} MN - ${(item.price_USD * item.cant).toFixed(2)} USD`,
@@ -224,47 +347,15 @@ function ListItems({ items, username }) {
     });
     return rows
   }
-
+  { /* ok voy a crear un producto, nombre: cadena de plata , costo(lo que me costo):50 , moneda: USD , Precio(precio al que lo voy a vender): 100000 MN , cantidad :2 , Detalles : buena cadena de plata, imagenes: 3 , categoria: Accesorios, Pais(country): otro (esto significa que hay taxes o sea ) */ }
   const columns = [
     {
       field: 'name',
       headerName: 'Product',
-      width: isMobile ? 180 : isTablet ? 200 : 250, // Más ancho en móvil
+      width: isMobile ? 160 : isTablet ? 180 : 200, // Menos ancho ya que no incluye imagen
       editable: true,
       renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: isMobile ? 1 : 2 }}>
-          {!isMobile && (
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                backgroundColor: '#f0f0f0',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '12px',
-                fontWeight: '600',
-                color: '#666',
-                overflow: 'hidden'
-              }}
-            >
-              {(params.row.images && params.row.images.length > 0) ? (
-                <img
-                  src={params.row.images[0]}
-                  alt={params.value}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    borderRadius: '8px'
-                  }}
-                />
-              ) : (
-                'IMG'
-              )}
-            </Box>
-          )}
+        <Box sx={{ display: 'flex', alignItems: 'center', padding: '8px 0' }}>
           <Typography
             variant="body2"
             fontWeight="500"
@@ -277,6 +368,113 @@ function ListItems({ items, username }) {
           >
             {params.value}
           </Typography>
+        </Box>
+      ),
+    },
+    {
+      field: 'firstImage',
+      headerName: 'Photo',
+      width: isMobile ? 70 : 80,
+      editable: false,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            cursor: 'pointer'
+          }}
+          onClick={() => {
+            if (params.row.images && params.row.images.length > 0) {
+              // Si tiene imágenes, abrir el modal de gestión
+              openImageModal(params.row.images, 0, params.row);
+            } else {
+              // Si no tiene imágenes, abrir el selector de archivos
+              setSelectedItem(params.row);
+              setShowImageUploader(true);
+            }
+          }}
+        >
+          {params.value ? (
+            <Box sx={{ position: 'relative' }}>
+              <img
+                src={params.value.startsWith('http') ? params.value : `http://localhost:8000${params.value}`}
+                alt="Product"
+                style={{
+                  width: 40,
+                  height: 40,
+                  objectFit: 'cover',
+                  borderRadius: '4px',
+                  border: '1px solid #e0e0e0',
+                  transition: 'transform 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'scale(1)';
+                }}
+                onError={(e) => {
+                  // Si falla la imagen local, intentar la remota
+                  if (!e.target.src.includes('cubaunify.uk')) {
+                    e.target.src = params.value.startsWith('http') ? params.value : `https://cubaunify.uk${params.value}`;
+                  } else {
+                    // Si también falla la remota, mostrar placeholder
+                    e.target.style.display = 'none';
+                    e.target.parentElement.innerHTML = '<div style="width:40px;height:40px;background:#f0f0f0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#666;">No Img</div>';
+                  }
+                }}
+              />
+              {params.row.images && params.row.images.length > 1 && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: -2,
+                    right: -2,
+                    backgroundColor: '#1976d2',
+                    color: 'white',
+                    borderRadius: '50%',
+                    width: 16,
+                    height: 16,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10px',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {params.row.images.length}
+                </Box>
+              )}
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                backgroundColor: '#f5f5f5',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px',
+                color: '#999',
+                border: '2px dashed #ddd',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: '#e3f2fd',
+                  borderColor: '#1976d2',
+                  color: '#1976d2'
+                }
+              }}
+              title="Haz clic para agregar fotos"
+            >
+              📷
+            </Box>
+          )}
         </Box>
       ),
     },
@@ -930,8 +1128,8 @@ function ListItems({ items, username }) {
         price_USD: parseFloat(currentRow.price_USD || baseRow.price_USD) || 0,
         tax: parseFloat(currentRow.tax || baseRow.tax) || 0,
         category: currentRow.category !== undefined ? currentRow.category : (baseRow.category || ''),
-        seller: currentRow.seller || baseRow.seller || '',
-        image: currentRow.image || baseRow.image || null
+        seller: currentRow.seller || baseRow.seller || ''
+        // No enviar images para evitar problemas de conversión en edición
       };
 
       console.log('actualSaveRow - baseRow:', baseRow);
@@ -1760,6 +1958,272 @@ function ListItems({ items, username }) {
             </Paper>
           </Box>
         )}
+
+        {/* Modal para mostrar imágenes en grande */}
+        <Dialog
+          open={imageModalOpen}
+          onClose={() => setImageModalOpen(false)}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{
+            sx: {
+              bgcolor: 'rgba(0, 0, 0, 0.9)',
+              backdropFilter: 'blur(5px)',
+            }
+          }}
+        >
+          <DialogTitle sx={{ color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">
+              Imágenes del Producto ({currentImageIndex + 1} de {selectedImages.length})
+            </Typography>
+            <IconButton onClick={() => setImageModalOpen(false)} sx={{ color: 'white' }}>
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', minHeight: 400 }}>
+            {selectedImages.length > 0 && (
+              <>
+                {/* Botón anterior */}
+                {selectedImages.length > 1 && (
+                  <IconButton
+                    onClick={prevImage}
+                    sx={{
+                      position: 'absolute',
+                      left: 16,
+                      color: 'white',
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.2)' },
+                      zIndex: 1
+                    }}
+                  >
+                    <ArrowBackIosIcon />
+                  </IconButton>
+                )}
+
+                {/* Imagen principal */}
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
+                  <img
+                    src={selectedImages[currentImageIndex]?.startsWith('http')
+                      ? selectedImages[currentImageIndex]
+                      : `http://localhost:8000${selectedImages[currentImageIndex]}`}
+                    alt={`Product ${currentImageIndex + 1}`}
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '70vh',
+                      objectFit: 'contain',
+                      borderRadius: '8px'
+                    }}
+                    onError={(e) => {
+                      // Fallback para cubaunify.uk
+                      if (!e.target.src.includes('cubaunify.uk')) {
+                        e.target.src = selectedImages[currentImageIndex]?.startsWith('http')
+                          ? selectedImages[currentImageIndex]
+                          : `https://cubaunify.uk${selectedImages[currentImageIndex]}`;
+                      }
+                    }}
+                  />
+                </Box>
+
+                {/* Botón siguiente */}
+                {selectedImages.length > 1 && (
+                  <IconButton
+                    onClick={nextImage}
+                    sx={{
+                      position: 'absolute',
+                      right: 16,
+                      color: 'white',
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.2)' },
+                      zIndex: 1
+                    }}
+                  >
+                    <ArrowForwardIosIcon />
+                  </IconButton>
+                )}
+              </>
+            )}
+          </DialogContent>
+
+          {/* Miniaturas en la parte inferior y botones de gestión */}
+          {selectedImages.length > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', pb: 1 }}>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
+                {selectedImages.map((image, index) => (
+                  <Box
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    sx={{
+                      width: 60,
+                      height: 60,
+                      cursor: 'pointer',
+                      border: index === currentImageIndex ? '2px solid #1976d2' : '2px solid transparent',
+                      borderRadius: '4px',
+                      overflow: 'hidden',
+                      opacity: index === currentImageIndex ? 1 : 0.7,
+                      transition: 'all 0.2s ease',
+                      '&:hover': { opacity: 1 }
+                    }}
+                  >
+                    <img
+                      src={image.startsWith('http') ? image : `http://localhost:8000${image}`}
+                      alt={`Thumbnail ${index + 1}`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
+                      onError={(e) => {
+                        if (!e.target.src.includes('cubaunify.uk')) {
+                          e.target.src = image.startsWith('http') ? image : `https://cubaunify.uk${image}`;
+                        }
+                      }}
+                    />
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          )}
+
+          {/* Botones de gestión de imágenes */}
+          <DialogActions sx={{ justifyContent: 'center', gap: 2, pb: 2 }}>
+            {/* Input oculto para subir archivos */}
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              style={{ display: 'none' }}
+              id="upload-images-input"
+              onChange={handleAddImages}
+            />
+
+            {/* Botón para agregar imágenes */}
+            <label htmlFor="upload-images-input">
+              <Button
+                component="span"
+                variant="contained"
+                startIcon={<PhotoCameraIcon />}
+                disabled={isUploadingImages || !selectedItem}
+                sx={{
+                  backgroundColor: '#4caf50',
+                  '&:hover': { backgroundColor: '#45a049' }
+                }}
+              >
+                {isUploadingImages ? 'Subiendo...' : 'Agregar Fotos'}
+              </Button>
+            </label>
+
+            {/* Botón para eliminar imagen actual */}
+            <Button
+              variant="contained"
+              color="error"
+              startIcon={<DeleteForeverIcon />}
+              onClick={handleRemoveImage}
+              disabled={selectedImages.length === 0}
+            >
+              Eliminar Esta Foto
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Dialog para subir imágenes cuando no hay ninguna */}
+        <Dialog
+          open={showImageUploader}
+          onClose={() => setShowImageUploader(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>
+            <Typography variant="h6">
+              Agregar Fotos al Producto
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {selectedItem?.name}
+            </Typography>
+          </DialogTitle>
+          <DialogContent>
+            <Box sx={{ textAlign: 'center', py: 3 }}>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="upload-initial-images"
+                onChange={async (event) => {
+                  const files = Array.from(event.target.files);
+                  if (files.length === 0 || !selectedItem) return;
+
+                  setIsUploadingImages(true);
+                  const formData = new FormData();
+                  files.forEach(file => formData.append('files', file));
+
+                  try {
+                    const response = await fetch(`http://localhost:8000/items/${selectedItem.id}/add-images`, {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                      },
+                      body: formData
+                    });
+
+                    if (response.ok) {
+                      const result = await response.json();
+                      // Cerrar el modal de upload
+                      setShowImageUploader(false);
+                      // Mostrar mensaje de éxito
+                      alert(`${result.new_images.length} imágenes agregadas exitosamente`);
+                      // Hacer refresh completo de la página para ver los cambios
+                      window.location.reload();
+                    } else {
+                      throw new Error('Error al subir imágenes');
+                    }
+                  } catch (error) {
+                    console.error('Error uploading images:', error);
+                    alert('Error al subir las imágenes');
+                  } finally {
+                    setIsUploadingImages(false);
+                    event.target.value = '';
+                  }
+                }}
+              />
+
+              <label htmlFor="upload-initial-images">
+                <Box
+                  sx={{
+                    border: '2px dashed #1976d2',
+                    borderRadius: '8px',
+                    padding: '40px 20px',
+                    cursor: 'pointer',
+                    backgroundColor: '#f8f9fa',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      backgroundColor: '#e3f2fd',
+                      borderColor: '#1565c0'
+                    }
+                  }}
+                >
+                  <PhotoCameraIcon sx={{ fontSize: 48, color: '#1976d2', mb: 2 }} />
+                  <Typography variant="h6" gutterBottom>
+                    {isUploadingImages ? 'Subiendo imágenes...' : 'Seleccionar Fotos'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Haz clic aquí para seleccionar múltiples imágenes
+                  </Typography>
+                  <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                    Formatos: JPG, PNG, GIF
+                  </Typography>
+                </Box>
+              </label>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => setShowImageUploader(false)}
+              disabled={isUploadingImages}
+            >
+              Cancelar
+            </Button>
+          </DialogActions>
+        </Dialog>
 
       </div>
     </div>

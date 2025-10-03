@@ -68,8 +68,8 @@ export default function AdminPanel() {
         setLoading(true);
         setError('');
         try {
-            const token = localStorage.getItem('token');
-            const response = await apiConfig.fetchWithFallback('admin/users', {
+            const token = localStorage.getItem('access_token');
+            const response = await apiConfig.fetchWithFallback('users', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -78,10 +78,11 @@ export default function AdminPanel() {
 
             if (response.ok) {
                 const data = await response.json();
-                setUsers(data);
+                setUsers(Array.isArray(data) ? data : []);
             } else {
                 const errorData = await response.json();
                 setError(errorData.detail || 'Error loading users');
+                setUsers([]); // Asegurar que users sea siempre un array
             }
         } catch (error) {
             if (error.message === 'SERVER_ERROR') {
@@ -89,6 +90,7 @@ export default function AdminPanel() {
             } else {
                 setError('Error de conexión: ' + error.message);
             }
+            setUsers([]); // Asegurar que users sea siempre un array
         } finally {
             setLoading(false);
         }
@@ -112,7 +114,7 @@ export default function AdminPanel() {
         setSuccess('');
 
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             const response = await fetch(`${getApiUrl()}/admin/users/${editDialog.user.id}`, {
                 method: 'PUT',
                 headers: {
@@ -143,7 +145,7 @@ export default function AdminPanel() {
         setSuccess('');
 
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access_token');
             const response = await fetch(`${getApiUrl()}/admin/users/${deleteDialog.user.id}`, {
                 method: 'DELETE',
                 headers: {
@@ -214,14 +216,14 @@ export default function AdminPanel() {
                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                                 <PersonIcon sx={{ mr: 1 }} />
                                 <Typography variant="h4">
-                                    {users.length}
+                                    {users?.length || 0}
                                 </Typography>
                                 <Typography variant="body1" sx={{ ml: 1 }}>
                                     Total Users
                                 </Typography>
                             </Box>
                             <Typography variant="body2" color="text.secondary">
-                                {users.filter(user => user.is_admin).length} Administrators
+                                {users?.filter(user => user.is_admin)?.length || 0} Administrators
                             </Typography>
                         </CardContent>
                         <CardActions>
@@ -300,7 +302,7 @@ export default function AdminPanel() {
                             </Table>
                         </TableContainer>
 
-                        {users.length === 0 && !loading && (
+                        {(users?.length === 0) && !loading && (
                             <Box sx={{ textAlign: 'center', py: 4 }}>
                                 <Typography color="text.secondary">No users found</Typography>
                             </Box>

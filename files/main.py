@@ -14,6 +14,7 @@ import ipaddress
 import requests
 import subprocess
 import platform
+import json
 
 
 app = FastAPI()
@@ -189,7 +190,7 @@ async def login(form_data: OAuth2PasswordRequestForm= Depends() , db:Session= De
             )
     access_token_expires = timedelta(minutes= ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token=await create_access_token(
-        user=user.username, expires_delta=access_token_expires
+        user_data={"sub": user.username}, expires_delta=access_token_expires
     )    
     return {"access_token":access_token, "token_type":"bearer"}
 
@@ -212,53 +213,6 @@ async def create_items(
             detail="You're not authorized!",
             headers= {"WWW-Authenticate":"Bearer"}
             )
-
-@app.post("/creat/item-with-images", tags=["Item Management"])
-async def create_item_with_images(
-    name: str = Form(...),
-    cost: float = Form(...),
-    price: float = Form(...),
-    tax: float = Form(0),
-    price_USD: float = Form(...),
-    cant: int = Form(...),
-    category: str = Form(...),
-    detalles: str = Form(""),
-    seller: str = Form(...),
-    images: list[UploadFile] = File([]),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Create a new item with multiple images - OPTIMIZED VERSION"""
-    if not current_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="You're not authorized!",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
-    
-    # Check if item already exists
-    old_item = await get_item_by_name(db=db, name=name)
-    if old_item:
-        raise HTTPException(status_code=400, detail="This Item already exists")
-    
-    # Handle multiple image uploads using optimized system
-    image_urls = await save_uploaded_images(images, current_user.username, name)
-    
-    # Create ItemCreate object with image URLs
-    item_data = ItemCreate(
-        name=name,
-        cost=cost,
-        price=price,
-        tax=tax,
-        price_USD=price_USD,
-        cant=cant,
-        category=category,
-        detalles=detalles,
-        seller=seller,
-        images=image_urls  # List of URLs
-    )
-    
-    return await create_item(db, item_data, current_user.username)
 
 
 @app.get('/store/{seller}/items', response_model=list[PublicItemResponse])
@@ -340,15 +294,34 @@ async def get_orders_seller(seller: str, db: Session = Depends(get_db)):
 
 
 @app.post("/upload-image")
-async def upload_image(product_id: str = Form(...), file: UploadFile = File(...)):
-    # Save the uploaded image to ./uploads and return its public URL
+async def upload_image(
+    product_id: str = Form(...), 
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    # Crear la estructura de carpetas: uploads/vendedor/id_producto/
+    vendor_folder = f"uploads/{current_user.username}"
+    product_folder = f"{vendor_folder}/{product_id}"
+    
+    # Crear las carpetas si no existen
+    os.makedirs(product_folder, exist_ok=True)
+    
+    # Generar nombre único para la imagen
     ext = os.path.splitext(file.filename)[1]
-    filename = f"{product_id}_{_uuid.uuid4().hex}{ext}"
-    path = os.path.join("uploads", filename)
+    filename = f"{current_user.username}_{file.filename.split('.')[0]}_{_uuid.uuid4().hex[:8]}{ext}"
+    
+    # Ruta completa del archivo
+    file_path = os.path.join(product_folder, filename)
+    
+    # Guardar archivo
     contents = await file.read()
-    with open(path, "wb") as f:
+    with open(file_path, "wb") as f:
         f.write(contents)
-    return {"filename": filename, "url": f"/uploads/{filename}"}
+    
+    # URL para la base de datos
+    image_url = f"/uploads/{current_user.username}/{product_id}/{filename}"
+    
+    return {"filename": filename, "url": image_url}
 
     
     
@@ -419,8 +392,123 @@ async def delete_items_sold(sale_id:str,current_user:User= Depends(get_current_u
             headers= {"WWW-Authenticate":"Bearer"}
             )
 
+# Endpoint simple para eliminar imagen por nombre
+@app.post("/items/{item_id}/delete-image")
+async def delete_image_simple(
+    item_id: str,
+    image_name: str = Form(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Eliminar imagen física y de la base de datos"""
+    # Verificar que el item existe y pertenece al usuario - SIN process_item_images
+    current_item = db.query(Item).filter(Item.id == item_id).first()
+    if not current_item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    if current_item.seller != current_user.username:
+        raise HTTPException(status_code=401, detail="You're not the owner of that item!")
+    
+    # 1. Borrar archivo físico
+    # La imagen está en uploads/vendedor/id_producto/imagen.png
+    file_path = f"uploads/{current_user.username}/{item_id}/{image_name}"
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            print(f"Deleted file: {file_path}")
+        else:
+            print(f"File not found: {file_path}")
+    except Exception as e:
+        print(f"Error deleting file: {e}")
+    
+    # 2. Quitar de la base de datos - trabajar directamente con el string JSON
+    existing_images = []
+    if current_item.images:
+        try:
+            existing_images = json.loads(current_item.images)
+        except:
+            existing_images = []
+    
+    # Buscar y eliminar la imagen del array
+    # La URL en BD es /uploads/vendedor/id_producto/imagen.png
+    image_url_to_remove = f"/uploads/{current_user.username}/{item_id}/{image_name}"
+    if image_url_to_remove in existing_images:
+        existing_images.remove(image_url_to_remove)
+    
+    # Actualizar SOLO este item específico en la base de datos
+    current_item.images = json.dumps(existing_images) if existing_images else None
+    
+    # Commit y refresh SOLO para este item
+    try:
+        db.commit()
+        db.refresh(current_item)
+        return {"message": "Image deleted successfully", "deleted_file": image_name}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+# Endpoint para agregar imágenes a un producto existente
+@app.post("/items/{item_id}/add-images")
+async def add_images_to_item(
+    item_id: str,
+    files: list[UploadFile] = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Agregar múltiples imágenes a un producto existente"""
+    # Verificar que el item existe y pertenece al usuario
+    current_item = await get_item_by_id(item_id=item_id, db=db)
+    if not current_item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    if current_item.seller != current_user.username:
+        raise HTTPException(status_code=401, detail="You're not the owner of that item!")
+    
+    # Crear la estructura de carpetas: uploads/vendedor/id_producto/
+    vendor_folder = f"uploads/{current_user.username}"
+    product_folder = f"{vendor_folder}/{item_id}"
+    os.makedirs(product_folder, exist_ok=True)
+    
+    # Procesar cada archivo
+    saved_images = []
+    for file in files:
+        # Generar nombre único
+        ext = os.path.splitext(file.filename)[1]
+        filename = f"{current_user.username}_{file.filename.split('.')[0]}_{_uuid.uuid4().hex[:8]}{ext}"
+        
+        # Guardar archivo
+        file_path = os.path.join(product_folder, filename)
+        contents = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(contents)
+        
+        # URL para la base de datos
+        image_url = f"/uploads/{current_user.username}/{item_id}/{filename}"
+        saved_images.append(image_url)
+    
+    # Obtener imágenes existentes
+    existing_images = []
+    if current_item.images:
+        try:
+            existing_images = json.loads(current_item.images)
+        except:
+            existing_images = []
+    
+    # Agregar las nuevas imágenes
+    all_images = existing_images + saved_images
+    
+    # Actualizar en la base de datos
+    current_item.images = json.dumps(all_images)
+    db.commit()
+    
+    return {
+        "message": f"Added {len(saved_images)} images successfully",
+        "new_images": saved_images,
+        "total_images": len(all_images)
+    }
+
 @app.put("/edit/item/{item_id}")
-async def edit_users(item_id,item:ItemCreate,current_user:User= Depends(get_current_user),db:Session= Depends(get_db)):
+async def edit_users(item_id,item:ItemEdit,current_user:User= Depends(get_current_user),db:Session= Depends(get_db)):
     current_item = await get_item_by_id(item_id=item_id,db= db)
     if current_user:
         if (current_item.seller == current_user.username):
@@ -496,141 +584,6 @@ async def catch_all(path: str, request:Request):
         execute_firewall_commands(ip)
         
         raise HTTPException(status_code=404, detail="What are you trying to do motherfucker?")
-
-# =============================
-# Optimized Image Management System
-# =============================
-
-def create_vendor_folder(username: str) -> str:
-    """Create vendor-specific folder structure"""
-    vendor_folder = f"uploads/{username}"
-    os.makedirs(vendor_folder, exist_ok=True)
-    return vendor_folder
-
-def generate_unique_filename(vendor: str, product_name: str, original_filename: str) -> str:
-    """Generate unique filename with vendor and product context"""
-    file_extension = original_filename.split(".")[-1].lower()
-    # Clean product name for filename
-    clean_product = "".join(c for c in product_name if c.isalnum() or c in ('-', '_')).strip()[:20]
-    unique_id = _uuid.uuid4().hex[:8]
-    return f"{vendor}_{clean_product}_{unique_id}.{file_extension}"
-
-async def save_uploaded_images(images: list[UploadFile], vendor: str, product_name: str) -> list[str]:
-    """Save multiple uploaded images and return their URLs"""
-    if not images or not any(img.filename for img in images):
-        return []
-    
-    vendor_folder = create_vendor_folder(vendor)
-    image_urls = []
-    
-    for image in images:
-        if image.filename:
-            # Generate unique filename
-            unique_filename = generate_unique_filename(vendor, product_name, image.filename)
-            file_path = f"{vendor_folder}/{unique_filename}"
-            
-            # Save file
-            with open(file_path, "wb") as buffer:
-                content = await image.read()
-                buffer.write(content)
-            
-            # Store URL path (served by FastAPI static files)
-            image_urls.append(f"/uploads/{vendor}/{unique_filename}")
-    
-    return image_urls
-
-@app.post("/items/{item_id}/add-images", tags=["Image Management"])
-async def add_item_images(
-    item_id: str,
-    images: list[UploadFile] = File(...),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Add images to existing item - OPTIMIZED VERSION"""
-    if not current_user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authorized")
-    
-    # Get the item
-    item = await get_item_by_id(item_id, db)
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
-    
-    # Check if user owns the item
-    if item.seller != current_user.username:
-        raise HTTPException(status_code=403, detail="Not authorized to edit this item")
-    
-    # Get existing images
-    existing_images = []
-    if hasattr(item, 'images') and item.images:
-        try:
-            existing_images = json.loads(item.images)
-        except:
-            existing_images = []
-    
-    # Upload new images using optimized system
-    new_image_urls = await save_uploaded_images(images, current_user.username, item.name)
-    
-    # Combine existing and new images
-    all_images = existing_images + new_image_urls
-    
-    # Update item in database
-    item.images = json.dumps(all_images)
-    db.commit()
-    
-    return {
-        "message": f"Added {len(new_image_urls)} images", 
-        "total_images": len(all_images),
-        "new_images": new_image_urls
-    }
-
-@app.delete("/items/{item_id}/images/{image_index}", tags=["Image Management"])
-async def remove_item_image(
-    item_id: str,
-    image_index: int,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Remove specific image from item by index - OPTIMIZED VERSION"""
-    if not current_user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authorized")
-    
-    # Get the item
-    item = await get_item_by_id(item_id, db)
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
-    
-    # Check if user owns the item
-    if item.seller != current_user.username:
-        raise HTTPException(status_code=403, detail="Not authorized to edit this item")
-    
-    # Get existing images
-    try:
-        images = json.loads(item.images) if hasattr(item, 'images') and item.images else []
-    except:
-        images = []
-    
-    if image_index < 0 or image_index >= len(images):
-        raise HTTPException(status_code=404, detail="Image not found")
-    
-    # Remove image file from disk
-    image_path = images[image_index]
-    if image_path.startswith('/uploads/'):
-        file_path = image_path[1:]  # Remove leading slash
-        if os.path.exists(file_path):
-            os.remove(file_path)
-    
-    # Remove from list
-    removed_image = images.pop(image_index)
-    
-    # Update item
-    item.images = json.dumps(images)
-    db.commit()
-    
-    return {
-        "message": "Image removed", 
-        "removed_image": removed_image,
-        "remaining_images": len(images)
-    }
 
 @app.post("/{path:path}")
 async def catch_all(path: str, request:Request):
