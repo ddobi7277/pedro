@@ -249,7 +249,7 @@ function ListItems({ items, username }) {
     files.forEach(file => formData.append('files', file));
 
     try {
-      const response = await fetch(`http://localhost:8000/items/${selectedItem.id}/add-images`, {
+      const response = await apiConfig.fetchWithFallback(`items/${selectedItem.id}/add-images`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -294,7 +294,7 @@ function ListItems({ items, username }) {
       const formData = new FormData();
       formData.append('image_name', imageName);
 
-      const response = await fetch(`http://localhost:8000/items/${selectedItem.id}/delete-image`, {
+      const response = await apiConfig.fetchWithFallback(`items/${selectedItem.id}/delete-image`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -2526,7 +2526,7 @@ function ListItems({ items, username }) {
                   files.forEach(file => formData.append('files', file));
 
                   try {
-                    const response = await fetch(`http://localhost:8000/items/${selectedItem.id}/add-images`, {
+                    const response = await apiConfig.fetchWithFallback(`items/${selectedItem.id}/add-images`, {
                       method: 'POST',
                       headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
