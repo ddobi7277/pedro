@@ -11,7 +11,7 @@ class ItemCreate(BaseModel):
     tax: float | None = 0
     price_USD:float
     cant:int
-    image: str | None = None
+    images: list[str] | None = None
     category:str| None= None
     seller:str | None= None
     detalles: str | None = None

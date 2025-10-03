@@ -19,6 +19,9 @@ import MenuItem from '@mui/material/MenuItem';
 import { useTheme } from '@mui/material/styles';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import IconButton from '@mui/material/IconButton';
+import Avatar from '@mui/material/Avatar';
 
 
 import AppTheme from './LoginComponents/AppTheme';
@@ -91,6 +94,9 @@ function Create() {
   const [price, setPrice] = useState('');
   const [cant, setCant] = useState('');
   const [detalles, setDetalles] = useState(''); // New field for details
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [fallbackMode, setFallbackMode] = useState(false);
   const [tasaCambio,] = useState(parseInt(localStorage.getItem('tasaCambio')) || 300)
   const [categoryList, setCategoryList] = useState([].sort());
   const theme = useTheme();
@@ -200,33 +206,143 @@ function Create() {
     return isValid;
   };
 
+  // Image handling functions
+  const handleImageSelect = (event) => {
+    const files = Array.from(event.target.files);
+    if (files.length > 0) {
+      const newImages = [...selectedImages, ...files];
+      setSelectedImages(newImages);
+
+      // Create previews for new images
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          setImagePreviews(prev => [...prev, {
+            file: file,
+            preview: reader.result,
+            id: Date.now() + Math.random() // Unique ID for each image
+          }]);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const handleImageRemove = (imageId) => {
+    setImagePreviews(prev => prev.filter(img => img.id !== imageId));
+    // Also remove from selectedImages by finding the corresponding file
+    const imageToRemove = imagePreviews.find(img => img.id === imageId);
+    if (imageToRemove) {
+      setSelectedImages(prev => prev.filter(file => file !== imageToRemove.file));
+    }
+  };
+
+  const clearForm = () => {
+    setName('');
+    setCost('');
+    setPrice('');
+    setCant('');
+    setDetalles('');
+    setSelectedImages([]);
+    setImagePreviews([]);
+    setFallbackMode(false);
+    setCatName('');
+    setCategory('');
+  };
+
   const handleSubmit = async () => {
     console.log('Country', country)
-    const item = {
-      "name": name,
-      "cost": currency === 'USD' ? cost : (cost / tasaCambio).toFixed(2),
-      "price": price,
-      "tax": country === 'Cuba' ? 0 : (cost * 0.16).toFixed(2),
-      "price_USD": price / tasaCambio,
-      "cant": cant,
-      "category": catname,
-      "detalles": detalles, // Include detalles field
-      "seller": "seller"
-    }
-    console.log(item)
     if (validateInputs()) {
       try {
-        const response = await fetch(getApiUrl('creat/item'), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(item)
-        })
+        let response;
+
+        if (selectedImages.length > 0) {
+          // Try the new endpoint first, fallback to original if 404
+          const formData = new FormData();
+          formData.append('name', name);
+          formData.append('cost', currency === 'MN' ? (cost / tasaCambio).toFixed(2) : cost); // Costo según moneda seleccionada → USD
+          formData.append('price', price); // Price se ingresa en MN
+          formData.append('tax', country === 'Cuba' ? 0 : ((currency === 'MN' ? (cost / tasaCambio) : cost) * 0.16).toFixed(2)); // Tax sobre costo en USD
+          formData.append('price_USD', (price / tasaCambio).toFixed(2)); // Price MN → USD
+          formData.append('cant', cant);
+          formData.append('category', catname);
+          formData.append('detalles', detalles);
+          formData.append('seller', 'seller');
+
+          // Append multiple images
+          selectedImages.forEach((image, index) => {
+            formData.append(`images`, image);
+          });
+
+          try {
+            // Try new optimized endpoint first
+            response = await fetch(getApiUrl('creat/item-with-images'), {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`
+              },
+              body: formData
+            });
+
+            // If 404, fallback to original endpoint with JSON (no images)
+            if (response.status === 404) {
+              console.log('Fallback: Using original endpoint (images not supported)');
+              setFallbackMode(true);
+
+              // Create JSON object for original endpoint
+              const item = {
+                "name": name,
+                "cost": currency === 'MN' ? (cost / tasaCambio).toFixed(2) : cost, // Costo según moneda seleccionada → USD
+                "price": price, // Price se ingresa en MN
+                "tax": country === 'Cuba' ? 0 : ((currency === 'MN' ? (cost / tasaCambio) : cost) * 0.16).toFixed(2), // Tax sobre costo en USD
+                "price_USD": (price / tasaCambio).toFixed(2), // Price MN → USD
+                "cant": cant,
+                "category": catname,
+                "detalles": detalles,
+                "seller": "seller"
+                // Note: No images field - original endpoint doesn't support them
+              };
+
+              response = await fetch(getApiUrl('creat/item'), {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(item)
+              });
+            }
+          } catch (error) {
+            console.error('Error with image upload:', error);
+            throw error;
+          }
+        } else {
+          // Use JSON when no images
+          const item = {
+            "name": name,
+            "cost": currency === 'MN' ? (cost / tasaCambio).toFixed(2) : cost, // Costo según moneda seleccionada → USD
+            "price": price, // Price se ingresa en MN
+            "tax": country === 'Cuba' ? 0 : ((currency === 'MN' ? (cost / tasaCambio) : cost) * 0.16).toFixed(2), // Tax sobre costo en USD
+            "price_USD": (price / tasaCambio).toFixed(2), // Price MN → USD
+            "cant": cant,
+            "category": catname,
+            "detalles": detalles,
+            "seller": "seller"
+          }
+
+          response = await fetch(getApiUrl('creat/item'), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(item)
+          });
+        }
         const data = await response.json()
         if (response.ok) {
           console.log(data)
+          clearForm()
           navigate('/dashboard')
         }
         if (response.status === 401) {
@@ -490,6 +606,71 @@ function Create() {
                 onChange={(e) => { setDetalles(e.target.value) }}
                 onFocus={() => { setShow(false) }}
               />
+            </FormControl>
+            <FormControl fullWidth>
+              <FormLabel component="legend">Imágenes del Producto:</FormLabel>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                <input
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  id="image-upload"
+                  type="file"
+                  multiple
+                  onChange={handleImageSelect}
+                />
+                <label htmlFor="image-upload">
+                  <IconButton color="primary" aria-label="upload picture" component="span">
+                    <PhotoCameraIcon />
+                  </IconButton>
+                  <span style={{ marginLeft: 8 }}>Agregar imágenes ({imagePreviews.length}/5)</span>
+                </label>
+                {fallbackMode && (
+                  <Typography variant="body2" color="warning.main" sx={{ fontSize: '0.875rem', fontStyle: 'italic' }}>
+                    ⚠️ Servidor no actualizado: Las imágenes no se guardarán (solo texto)
+                  </Typography>
+                )}
+                {imagePreviews.length > 0 && (
+                  <Box sx={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 2,
+                    maxHeight: 200,
+                    overflow: 'auto'
+                  }}>
+                    {imagePreviews.map((img) => (
+                      <Box
+                        key={img.id}
+                        sx={{
+                          position: 'relative',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <Avatar
+                          src={img.preview}
+                          sx={{ width: 80, height: 80 }}
+                          variant="rounded"
+                        />
+                        <IconButton
+                          color="error"
+                          size="small"
+                          onClick={() => handleImageRemove(img.id)}
+                          sx={{
+                            position: 'absolute',
+                            top: -5,
+                            right: -5,
+                            backgroundColor: 'white',
+                            '&:hover': { backgroundColor: '#ffebee' }
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </Box>
             </FormControl>
           </Box>
           <FormControl>

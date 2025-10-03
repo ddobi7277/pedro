@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta, timezone
 import jwt
+import json
 from database import SessionLocal
-from jwt.exceptions import InvalidTokenError
+# from jwt.exceptions import InvalidTokenError  # This import may not be needed
 from passlib.context import CryptContext
 from shcema import UserCreate,ItemCreate,SaleCreate,SaleEdit,CategoryCreate, CustomerCreate, OrderCreate
 from models import User,Item,Sales,Category, Customer, Order
@@ -11,6 +12,16 @@ from fastapi import Depends,  HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from shcema import UserCreate
 
+def process_item_images(item):
+    """Convert images JSON string back to list for API response"""
+    if hasattr(item, 'images') and item.images:
+        try:
+            item.images = json.loads(item.images)
+        except (json.JSONDecodeError, TypeError):
+            item.images = []
+    else:
+        item.images = []
+    return item
 
 def get_db():
     db = SessionLocal()
@@ -54,13 +65,16 @@ async def get_item_by_name(db: Session, name:str):
     return db.query(Item).filter(Item.name == name).first()
 
 async def get_items_by_seller(user: str , db:Session):   
-    return  db.query(Item).filter(Item.seller == user).order_by(Item.category).all()
+    items = db.query(Item).filter(Item.seller == user).order_by(Item.category).all()
+    return [process_item_images(item) for item in items]
 
 async def get_item_by_id(item_id:str,db:Session):
-    return db.query(Item).filter(Item.id == item_id).first()
+    item = db.query(Item).filter(Item.id == item_id).first()
+    return process_item_images(item) if item else None
 
 async def get_items_by_category(db:Session, category:str):
-    return db.query(Item).filter(Item.category == category).all()
+    items = db.query(Item).filter(Item.category == category).all()
+    return [process_item_images(item) for item in items]
 
 async def create_user(db:Session, user: UserCreate):
     hashed_password = hash_password(user.hashed_password)
@@ -78,6 +92,12 @@ async def create_user(db:Session, user: UserCreate):
 
 async def create_item(db:Session, item:ItemCreate, username:str):
     print(item)
+    
+    # Convert images list to JSON string for storage
+    images_json = None
+    if item.images:
+        images_json = json.dumps(item.images)
+    
     db_item = Item(
         id=str(uuid.uuid4()),
         name=item.name, 
@@ -86,7 +106,7 @@ async def create_item(db:Session, item:ItemCreate, username:str):
         tax=round(item.tax,2),
         price_USD=item.price_USD, 
         cant=item.cant, 
-        image=getattr(item, 'image', None), 
+        images=images_json,  # Store as JSON string
         category=item.category,
         seller=username,
         detalles=getattr(item, 'detalles', None)
@@ -270,7 +290,7 @@ async def get_current_user(db:Session= Depends(get_db), token: str= Depends(oaut
         user=await get_user_by_username(db,username)
         if user is None:
             raise credentials_exception 
-    except InvalidTokenError:
+    except (jwt.InvalidTokenError, Exception):
         raise credentials_exception
     #user_ob= UserCreate.model_validate(user)
     if user:

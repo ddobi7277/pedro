@@ -47,6 +47,13 @@ class ApiConfig {
             return this.DEVELOPMENT_URL;
         }
 
+        // TEMPORAL: Durante desarrollo, activar testMode automáticamente para evitar CORS
+        if (this.isDevelopment) {
+            this.testMode = true;
+            localStorage.setItem('testMode', 'true');
+            return this.DEVELOPMENT_URL;
+        }
+
         // Si el usuario no es admin, siempre ir a producción (cubaunify.uk)
         if (!this.isUserAdmin()) {
             return this.PRODUCTION_URL;
@@ -218,7 +225,13 @@ class ApiConfig {
             }
         } catch (error) {
             // Error de red (servidor no disponible)
-            if (this.isUserAdmin() && this.isDevelopment) {
+            // Intentar fallback automático en cualquier entorno cuando cubaunify.uk falla
+            const shouldTryFallback = error.name === 'TypeError' || 
+                                    error.message.includes('Failed to fetch') ||
+                                    error.message.includes('ERR_FAILED');
+            
+            if (shouldTryFallback && this.currentBaseUrl === this.PRODUCTION_URL) {
+                console.log('🔄 Cubaunify.uk no disponible, intentando fallback automático...');
                 const switched = await this.handleServerFailure(this.currentBaseUrl);
 
                 // Si se cambió exitosamente, intentar el request con el nuevo servidor
@@ -244,33 +257,48 @@ class ApiConfig {
     // Manejar fallo de servidor y cambio automático
     async handleServerFailure(failedUrl) {
         try {
-            // Si falló cubaunify.uk, cambiar a modo test (localhost:8000)
+            // Si falló cubaunify.uk, verificar si estamos en producción o desarrollo
             if (failedUrl === this.PRODUCTION_URL && !this.testMode) {
-                console.log('🔄 Cubaunify.uk no disponible, cambiando automáticamente a localhost:8000');
+                console.log('🔄 Cubaunify.uk no disponible');
 
-                // Verificar si localhost:8000 está disponible usando checkConnectivityOnly
-                // para no cambiar su estado visual si ya estaba marcado como offline
-                const localAvailable = await this.checkConnectivityOnly(this.DEVELOPMENT_URL);
+                // En desarrollo (localhost:3000), intentar cambiar a localhost:8000
+                if (this.isDevelopment) {
+                    console.log('🔄 Intentando cambio a localhost:8000...');
+                    
+                    // Verificar si localhost:8000 está disponible
+                    const localAvailable = await this.checkConnectivityOnly(this.DEVELOPMENT_URL);
 
-                // Solo cambiar si localhost:8000 está disponible Y no está marcado como offline manualmente
-                if (localAvailable && this.urlStatus[this.DEVELOPMENT_URL] !== 'offline') {
-                    this.testMode = true;
-                    localStorage.setItem('testMode', 'true');
-                    this.currentBaseUrl = this.DEVELOPMENT_URL;
-                    this.urlStatus[this.DEVELOPMENT_URL] = 'online';
+                    if (localAvailable && this.urlStatus[this.DEVELOPMENT_URL] !== 'offline') {
+                        this.testMode = true;
+                        localStorage.setItem('testMode', 'true');
+                        this.currentBaseUrl = this.DEVELOPMENT_URL;
+                        this.urlStatus[this.DEVELOPMENT_URL] = 'online';
 
-                    // Disparar evento para actualizar UI
-                    window.dispatchEvent(new CustomEvent('serverSwitched', {
-                        detail: { newServer: this.DEVELOPMENT_URL, testMode: true }
-                    }));
+                        // Disparar evento para actualizar UI
+                        window.dispatchEvent(new CustomEvent('serverSwitched', {
+                            detail: { newServer: this.DEVELOPMENT_URL, testMode: true }
+                        }));
 
-                    return true; // Cambio exitoso
-                } else {
-                    if (!localAvailable) {
-                        console.log('❌ Localhost:8000 no está disponible');
+                        return true; // Cambio exitoso
                     } else {
-                        console.log('❌ Localhost:8000 está marcado como offline manualmente');
+                        console.log('❌ Localhost:8000 no está disponible');
+                        return false;
                     }
+                } else {
+                    // En producción, no hay servidor de fallback disponible
+                    console.log('❌ En producción: servidor principal no disponible y no hay fallback');
+                    
+                    // Marcar el servidor como offline
+                    this.urlStatus[this.PRODUCTION_URL] = 'offline';
+                    
+                    // Disparar evento para mostrar mensaje al usuario
+                    window.dispatchEvent(new CustomEvent('serverError', {
+                        detail: { 
+                            message: 'Servidor principal no disponible. Inténtalo más tarde.', 
+                            server: this.PRODUCTION_URL 
+                        }
+                    }));
+                    
                     return false;
                 }
             }

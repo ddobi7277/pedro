@@ -29,7 +29,7 @@ class Item(Base):
     tax = Column(Float, index=True)
     price_USD = Column(Float, index=True)
     cant= Column(Integer, index= True)
-    image = Column(String, nullable=True)
+    images = Column(String, nullable=True)  # JSON string to store multiple image paths
     category= Column(String,index= True)
     seller = Column(String, ForeignKey("users.username"))
     detalles = Column(String, nullable=True)

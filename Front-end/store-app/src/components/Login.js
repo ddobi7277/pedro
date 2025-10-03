@@ -135,6 +135,9 @@ export default function Login(props) {
         if (error.message === 'SERVER_ERROR') {
           logError('All servers unavailable', error);
           setServerErrorDialog(true);
+        } else if (error.message === 'NETWORK_ERROR') {
+          setErrorSms('Servidor principal no disponible. Por favor, inténtelo más tarde o contacte al administrador.');
+          setOpen(true);
         } else {
           setErrorSms('Error de conexión. Por favor, verifique su conexión a internet.');
           setOpen(true);

@@ -142,7 +142,7 @@ function ListItems({ items, username }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
-  
+
   const apiRef = useGridApiRef()
   const navigate = useNavigate();
   const [edit, setEdit] = useState(false);
@@ -200,7 +200,7 @@ function ListItems({ items, username }) {
         precio: `${(item.price).toFixed(2)} MN - ${(item.price_USD).toFixed(2)} USD`,
         cost: item.cost,
         tax: item.tax,
-        show_price: `${(item.price).toFixed(2)}MN - ${(item.price / tasaCambio).toFixed(2)}USD`,
+        show_price: `${(item.price).toFixed(2)}MN - ${(item.price_USD).toFixed(2)}USD`,
         cant: item.cant,
         category: item.category,
         detalles: item.detalles || '', // Include detalles field
@@ -209,7 +209,7 @@ function ListItems({ items, username }) {
         // Campos calculados como string display
         total_price: `${(item.price * item.cant).toFixed(2)} MN - ${(item.price_USD * item.cant).toFixed(2)} USD`,
         inversion: `${((((item.cost + item.tax) * tasaCambio)) * item.cant).toFixed(2)} MN - ${((item.cost + item.tax) * item.cant).toFixed(2)} USD`,
-        revenue: `${((item.price * item.cant) - ((item.cost + item.tax) * tasaCambio) * item.cant).toFixed(2)} MN - ${(((item.price / tasaCambio) * item.cant) - ((item.cost + item.tax) * item.cant)).toFixed(2)} USD`,
+        revenue: `${((item.price * item.cant) - ((item.cost + item.tax) * tasaCambio) * item.cant).toFixed(2)} MN - ${((item.price_USD * item.cant) - ((item.cost + item.tax) * item.cant)).toFixed(2)} USD`,
 
         // Campos individuales para edición
         total_price_MN: (item.price * item.cant).toFixed(2),
@@ -217,7 +217,7 @@ function ListItems({ items, username }) {
         inversion_MN: ((((item.cost + item.tax) * tasaCambio)) * item.cant).toFixed(2),
         inversion_USD: ((item.cost + item.tax) * item.cant).toFixed(2),
         revenue_MN: ((item.price * item.cant) - ((item.cost + item.tax) * tasaCambio) * item.cant).toFixed(2),
-        revenue_USD: (((item.price / tasaCambio) * item.cant) - ((item.cost + item.tax) * item.cant)).toFixed(2)
+        revenue_USD: ((item.price_USD * item.cant) - ((item.cost + item.tax) * item.cant)).toFixed(2)
 
         // ... other calculations based on item properties
       };
@@ -229,7 +229,7 @@ function ListItems({ items, username }) {
     {
       field: 'name',
       headerName: 'Product',
-      width: isMobile ? 150 : isTablet ? 200 : 250,
+      width: isMobile ? 180 : isTablet ? 200 : 250, // Más ancho en móvil
       editable: true,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: isMobile ? 1 : 2 }}>
@@ -245,17 +245,31 @@ function ListItems({ items, username }) {
                 justifyContent: 'center',
                 fontSize: '12px',
                 fontWeight: '600',
-                color: '#666'
+                color: '#666',
+                overflow: 'hidden'
               }}
             >
-              IMG
+              {(params.row.images && params.row.images.length > 0) ? (
+                <img
+                  src={params.row.images[0]}
+                  alt={params.value}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    borderRadius: '8px'
+                  }}
+                />
+              ) : (
+                'IMG'
+              )}
             </Box>
           )}
-          <Typography 
-            variant="body2" 
+          <Typography
+            variant="body2"
             fontWeight="500"
-            sx={{ 
-              fontSize: isMobile ? '0.75rem' : '0.875rem',
+            sx={{
+              fontSize: isMobile ? '0.875rem' : '0.875rem',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap'
@@ -269,14 +283,14 @@ function ListItems({ items, username }) {
     {
       field: 'sku',
       headerName: 'ID',
-      width: isMobile ? 60 : 80,
+      width: isMobile ? 80 : 80, // Más ancho en móvil
       editable: false,
       renderCell: (params) => (
-        <Typography 
-          variant="body2" 
-          color="text.secondary" 
+        <Typography
+          variant="body2"
+          color="text.secondary"
           fontWeight="500"
-          sx={{ fontSize: isMobile ? '0.7rem' : '0.875rem' }}
+          sx={{ fontSize: isMobile ? '0.875rem' : '0.875rem' }} // Tamaño normal
         >
           {params.row.id ? params.row.id.slice(-4) : 'N/A'}
         </Typography>
@@ -323,15 +337,15 @@ function ListItems({ items, username }) {
     {
       field: 'cant',
       headerName: 'Stock',
-      width: isMobile ? 70 : 100,
+      width: isMobile ? 90 : 100, // Más ancho
       editable: true,
       type: 'number',
       renderCell: (params) => (
-        <Typography 
-          variant="body2" 
-          fontWeight="500" 
+        <Typography
+          variant="body2"
+          fontWeight="500"
           textAlign="center"
-          sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}
+          sx={{ fontSize: isMobile ? '0.875rem' : '0.875rem' }} // Tamaño normal
         >
           {params.value || 0}
         </Typography>
@@ -340,7 +354,7 @@ function ListItems({ items, username }) {
     {
       field: 'precio',
       headerName: 'Price',
-      width: isMobile ? 120 : 200,
+      width: isMobile ? 140 : 200, // Más ancho en móvil
       editable: true,
       renderCell: (params) => (
         <Typography variant="body2" fontWeight="500">
@@ -556,7 +570,7 @@ function ListItems({ items, username }) {
     {
       field: 'detalles',
       headerName: 'Detalles',
-      width: isMobile ? 80 : 120,
+      width: isMobile ? 100 : 120, // Más ancho
       editable: false,
       sortable: false,
       renderCell: (params) => {
@@ -608,7 +622,7 @@ function ListItems({ items, username }) {
       field: 'actions',
       type: 'actions',
       headerName: isMobile ? '' : 'Acciones',
-      width: isMobile ? 80 : 100,
+      width: isMobile ? 100 : 100, // Más ancho en móvil
       cellClassName: 'actions',
       getActions: ({ id }) => {
         const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit || cellEditingRows.has(id);
@@ -1198,49 +1212,49 @@ function ListItems({ items, username }) {
 
   return (
     <div>
-      <ButtonGroup 
-        sx={{ 
+      <ButtonGroup
+        sx={{
           flexWrap: 'wrap',
           gap: isMobile ? 1 : 0,
           '& .MuiButton-root': {
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            padding: isMobile ? '6px 12px' : '8px 16px'
+            fontSize: isMobile ? '0.875rem' : '0.875rem', // Tamaño normal
+            padding: isMobile ? '8px 16px' : '8px 16px' // Padding normal
           }
         }}
-        orientation={isMobile ? 'vertical' : 'horizontal'}
-        variant={isMobile ? 'text' : 'contained'}
+        orientation={isMobile ? 'horizontal' : 'horizontal'} // Mantener horizontal
+        variant="contained" // Siempre contained
       >
-        <Button 
-          color="primary" 
-          startIcon={!isMobile && <BadgeIcon />}
-          size={isMobile ? 'small' : 'medium'}
+        <Button
+          color="primary"
+          startIcon={<BadgeIcon />} // Siempre mostrar icono
+          size="medium" // Tamaño normal
         >
-          {isMobile ? username : `Welcome / Bienvenid@ : ${username}`}
+          {isMobile ? `Hola ${username}` : `Welcome / Bienvenid@ : ${username}`}
         </Button>
-        <Button 
-          color="primary" 
-          startIcon={<AddIcon />} 
+        <Button
+          color="primary"
+          startIcon={<AddIcon />}
           onClick={() => { navigate('/create') }}
-          size={isMobile ? 'small' : 'medium'}
+          size="medium" // Tamaño normal
         >
           {isMobile ? 'Crear' : 'Crear Producto'}
         </Button>
         {(username == 'pedro') && (
-          <Button 
-            color="primary" 
-            startIcon={!isMobile && <GroupAddIcon />} 
+          <Button
+            color="primary"
+            startIcon={<GroupAddIcon />} // Siempre mostrar icono
             onClick={() => { navigate('/createUser') }}
-            size={isMobile ? 'small' : 'medium'}
+            size="medium" // Tamaño normal
           >
             {isMobile ? 'Usuario' : 'Registrar Usuario'}
           </Button>
         )}
         {edit && (
-          <Button 
-            startIcon={<AttachMoneyIcon />} 
-            onTouchStart={() => { setOpen(true); console.log(open) }} 
+          <Button
+            startIcon={<AttachMoneyIcon />}
+            onTouchStart={() => { setOpen(true); console.log(open) }}
             onClick={() => { setOpen(true); console.log(open) }}
-            size={isMobile ? 'small' : 'medium'}
+            size="medium" // Tamaño normal
           >
             Vender
           </Button>
@@ -1327,15 +1341,15 @@ function ListItems({ items, username }) {
 
       <div>
         <Paper sx={{
-          height: { 
-            xs: 'calc(100vh - 200px)', // Móvil: altura basada en viewport
-            sm: 'calc(100vh - 220px)', // Tablet: un poco más de margen
+          height: {
+            xs: 'calc(100vh - 180px)', // Móvil: un poco más alto
+            sm: 'calc(100vh - 200px)', // Tablet: altura cómoda
             md: '500px' // Desktop: altura fija
           },
           width: '100%',
           overflow: 'hidden',
-          mx: { xs: 0, sm: 'auto' }, // Sin márgenes en móvil
-          maxWidth: '100vw' // Nunca exceder el ancho de pantalla
+          mx: { xs: 0, sm: 'auto' },
+          maxWidth: '100vw'
         }}>
           <ThemeProvider theme={inventoryTheme}>
             <DataGrid
@@ -1412,14 +1426,14 @@ function ListItems({ items, username }) {
                   minWidth: 0,
                 },
                 '& .MuiDataGrid-columnHeaders': {
-                  minHeight: { xs: '40px', sm: '56px' },
+                  minHeight: { xs: '48px', sm: '56px' }, // Más alto en móvil
                 },
                 '& .MuiDataGrid-cell': {
-                  padding: { xs: '4px 8px', sm: '0 16px' },
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  padding: { xs: '8px 12px', sm: '0 16px' }, // Más padding en móvil
+                  fontSize: { xs: '0.875rem', sm: '0.875rem' }, // Mismo tamaño de fuente
                 },
                 '& .MuiDataGrid-row': {
-                  minHeight: { xs: '40px', sm: '52px' },
+                  minHeight: { xs: '52px', sm: '52px' }, // Filas más altas en móvil
                 },
                 // Mejor scroll en móvil
                 overflowX: 'auto',
@@ -1604,17 +1618,17 @@ function ListItems({ items, username }) {
             <Avatar sx={{ background: 'red', width: isMobile ? 20 : 24, height: isMobile ? 20 : 24 }}>
               <RemoveIcon sx={{ fontSize: isMobile ? 12 : 14 }} />
             </Avatar>
-            <Typography variant="body2" sx={{ color: '#666', fontSize: isMobile ? '0.75rem' : 'inherit' }}>
+            <Typography variant="body2" sx={{ color: '#666', fontSize: isMobile ? '0.875rem' : 'inherit' }}>
               Inversiones: <span style={{ color: '#f44336', fontWeight: 600 }}>
                 {isMobile ? `$${(totalInversion / tasaCambio).toFixed(0)}` : `${(totalInversion).toFixed(2)} MN - ${(totalInversion / tasaCambio).toFixed(2)} USD`}
               </span>
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: isMobile ? 'space-between' : 'flex-start' }}>
-            <Avatar sx={{ background: 'green', width: isMobile ? 20 : 24, height: isMobile ? 20 : 24 }}>
-              <AttachMoneyIcon sx={{ fontSize: isMobile ? 12 : 14 }} />
+            <Avatar sx={{ background: 'green', width: isMobile ? 24 : 24, height: isMobile ? 24 : 24 }}> {/* Tamaño normal */}
+              <AttachMoneyIcon sx={{ fontSize: isMobile ? 14 : 14 }} /> {/* Tamaño normal */}
             </Avatar>
-            <Typography variant="body2" sx={{ color: '#666', fontSize: isMobile ? '0.75rem' : 'inherit' }}>
+            <Typography variant="body2" sx={{ color: '#666', fontSize: isMobile ? '0.875rem' : 'inherit' }}>
               Ganancias: <span style={{ color: totalGanancias >= 0 ? '#4caf50' : '#f44336', fontWeight: 600 }}>
                 {isMobile ? `$${(totalGanancias / tasaCambio).toFixed(0)}` : `${totalGanancias.toFixed(2)} MN - ${(totalGanancias / tasaCambio).toFixed(2)} USD`}
               </span>
@@ -1624,7 +1638,7 @@ function ListItems({ items, username }) {
             <Avatar sx={{ background: 'blue', width: isMobile ? 20 : 24, height: isMobile ? 20 : 24 }}>
               <CurrencyExchangeIcon sx={{ fontSize: isMobile ? 12 : 14 }} />
             </Avatar>
-            <Typography variant="body2" sx={{ color: '#666', mr: 1, fontSize: isMobile ? '0.75rem' : 'inherit' }}>
+            <Typography variant="body2" sx={{ color: '#666', mr: 1, fontSize: isMobile ? '0.875rem' : 'inherit' }}> {/* Tamaño normal */}
               Tasa de Cambio:
             </Typography>
             <TextField
@@ -1633,15 +1647,15 @@ function ListItems({ items, username }) {
               value={tasaCambio}
               onChange={handleTasaCambioChange}
               sx={{
-                width: isMobile ? '60px' : '80px',
+                width: isMobile ? '70px' : '80px', // Un poco más ancho
                 '& .MuiOutlinedInput-root': {
-                  height: isMobile ? '28px' : '32px',
-                  fontSize: isMobile ? '12px' : '14px',
+                  height: isMobile ? '32px' : '32px', // Altura normal
+                  fontSize: isMobile ? '14px' : '14px', // Tamaño normal
                   fontWeight: 600,
                   color: '#1976d2'
                 },
                 '& .MuiOutlinedInput-input': {
-                  padding: isMobile ? '4px 6px' : '6px 8px',
+                  padding: isMobile ? '6px 8px' : '6px 8px', // Padding normal
                   textAlign: 'center'
                 }
               }}
