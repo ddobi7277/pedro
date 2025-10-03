@@ -394,13 +394,13 @@ function ListItems({ items, username }) {
   // Función helper para calcular anchos responsive (optimizados para evitar scroll)
   const getColumnWidth = (mobileWidth, tabletWidth, laptopWidth, desktopWidth = laptopWidth, fieldName) => {
     if (isMobile) {
-      // Sistema de acordeón para móvil
+      // Sistema de acordeón para móvil con anchos muy reducidos
       if (expandedColumn === fieldName) {
-        return mobileWidth * 2; // Columna expandida es más ancha
+        return mobileWidth * 1.5; // Reducido: expandida menos ancha para que quepan más
       } else if (expandedColumn && expandedColumn !== fieldName) {
-        return mobileWidth * 0.3; // Columnas colapsadas son más estrechas
+        return 25; // Muy estrecho cuando colapsadas
       } else {
-        return mobileWidth * 0.6; // Estado normal
+        return mobileWidth * 0.4; // Estado normal más estrecho
       }
     }
     if (isTablet) return tabletWidth * 0.85;
@@ -425,7 +425,7 @@ function ListItems({ items, username }) {
     {
       field: 'name',
       headerName: isMobile ? (expandedColumn === 'name' ? 'Product' : 'Prod') : 'Product',
-      width: getColumnWidth(120, 160, 200, 250, 'name'),
+      width: getColumnWidth(80, 160, 200, 250, 'name'), // Reducido ancho móvil de 120 a 80
       editable: true,
       flex: isMobile ? 0 : 0, // Usar ancho fijo en móvil para acordeón
       renderHeader: (params) => (
@@ -829,7 +829,7 @@ function ListItems({ items, username }) {
     {
       field: 'costo',
       headerName: isMobile ? (expandedColumn === 'costo' ? 'Costo' : 'Cst') : 'Costo',
-      width: getColumnWidth(140, 160, 180, 200, 'costo'),
+      width: getColumnWidth(80, 160, 180, 200, 'costo'), // Reducido ancho móvil de 140 a 80
       editable: true,
       // hide: shouldHideColumn('costo'), // Removido para mostrar en móvil
       renderHeader: (params) => (
@@ -2140,8 +2140,8 @@ function ListItems({ items, username }) {
               onRowModesModelChange={setRowModesModel}
 
               // Configuración responsive
-              columnBuffer={isMobile ? 1 : 5} // Reducir buffer para móvil
-              columnThreshold={isMobile ? 1 : 5}
+              columnBuffer={isMobile ? 15 : 5} // Incrementar buffer para mostrar todas las columnas
+              columnThreshold={isMobile ? 15 : 5} // Incrementar threshold para todas las columnas
               rowHeight={isMobile ? 50 : isTablet ? 65 : 70} // Más compacto en móvil
               headerHeight={isMobile ? 45 : 56} // Header más compacto
 
