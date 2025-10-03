@@ -313,8 +313,16 @@ async def upload_image(
     # Crear las carpetas si no existen
     os.makedirs(product_folder, exist_ok=True)
     
+    # Validar extensión de archivo
+    ext = os.path.splitext(file.filename)[1].lower()
+    allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.tiff', '.tif', '.ico', '.jfif'}
+    if ext not in allowed_extensions:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Tipo de archivo no permitido: {ext}. Formatos permitidos: {', '.join(allowed_extensions)}"
+        )
+    
     # Generar nombre único para la imagen
-    ext = os.path.splitext(file.filename)[1]
     filename = f"{current_user.username}_{file.filename.split('.')[0]}_{_uuid.uuid4().hex[:8]}{ext}"
     
     # Ruta completa del archivo
@@ -478,9 +486,18 @@ async def add_images_to_item(
     
     # Procesar cada archivo
     saved_images = []
+    allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.tiff', '.tif', '.ico', '.jfif'}
+    
     for file in files:
+        # Validar extensión
+        ext = os.path.splitext(file.filename)[1].lower()
+        if ext not in allowed_extensions:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Tipo de archivo no permitido: {ext}. Formatos permitidos: {', '.join(allowed_extensions)}"
+            )
+        
         # Generar nombre único
-        ext = os.path.splitext(file.filename)[1]
         filename = f"{current_user.username}_{file.filename.split('.')[0]}_{_uuid.uuid4().hex[:8]}{ext}"
         
         # Guardar archivo

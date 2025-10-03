@@ -28,6 +28,13 @@ import { ButtonGroup, TextField, Tooltip } from "@mui/material";
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
+
+// Helper function para construir URLs de imágenes usando apiConfig
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return '';
+  if (imagePath.startsWith('http')) return imagePath;
+  return `${apiConfig.currentBaseUrl}${imagePath}`;
+};
 import DialogActions from '@mui/material/DialogActions';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
@@ -448,7 +455,7 @@ function ListItems({ items, username }) {
           {params.value ? (
             <Box sx={{ position: 'relative' }}>
               <img
-                src={params.value.startsWith('http') ? params.value : `http://localhost:8000${params.value}`}
+                src={getImageUrl(params.value)}
                 alt="Product"
                 style={{
                   width: 40,
@@ -2372,9 +2379,7 @@ function ListItems({ items, username }) {
                 {/* Imagen principal */}
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
                   <img
-                    src={selectedImages[currentImageIndex]?.startsWith('http')
-                      ? selectedImages[currentImageIndex]
-                      : `http://localhost:8000${selectedImages[currentImageIndex]}`}
+                    src={getImageUrl(selectedImages[currentImageIndex])}
                     alt={`Product ${currentImageIndex + 1}`}
                     style={{
                       maxWidth: '100%',
@@ -2434,7 +2439,7 @@ function ListItems({ items, username }) {
                     }}
                   >
                     <img
-                      src={image.startsWith('http') ? image : `http://localhost:8000${image}`}
+                      src={getImageUrl(image)}
                       alt={`Thumbnail ${index + 1}`}
                       style={{
                         width: '100%',
@@ -2459,7 +2464,7 @@ function ListItems({ items, username }) {
             <input
               type="file"
               multiple
-              accept="image/*"
+              accept="image/*,.jpg,.jpeg,.png,.gif,.bmp,.webp,.svg,.tiff,.tif"
               style={{ display: 'none' }}
               id="upload-images-input"
               onChange={handleAddImages}
@@ -2514,7 +2519,7 @@ function ListItems({ items, username }) {
               <input
                 type="file"
                 multiple
-                accept="image/*"
+                accept="image/*,.jpg,.jpeg,.png,.gif,.bmp,.webp,.svg,.tiff,.tif"
                 style={{ display: 'none' }}
                 id="upload-initial-images"
                 onChange={async (event) => {
