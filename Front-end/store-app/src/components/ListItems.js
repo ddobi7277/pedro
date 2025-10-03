@@ -406,10 +406,16 @@ function ListItems({ items, username }) {
     const hideOnTablet = ['sales', 'sku'];
     const hideOnSmallLaptop = ['sales'];
 
-    if (isMobile && hideOnMobile.includes(column)) return true;
-    if (isTablet && !isMobile && hideOnTablet.includes(column)) return true;
-    if (isSmallLaptop && !isTablet && hideOnSmallLaptop.includes(column)) return true;
-    return false;
+    const shouldHide = (isMobile && hideOnMobile.includes(column)) ||
+      (isTablet && !isMobile && hideOnTablet.includes(column)) ||
+      (isSmallLaptop && !isTablet && hideOnSmallLaptop.includes(column));
+
+    // Debug temporal
+    if (isMobile) {
+      console.log(`Column ${column}: isMobile=${isMobile}, shouldHide=${shouldHide}`);
+    }
+
+    return shouldHide;
   }; { /* ok voy a crear un producto, nombre: cadena de plata , costo(lo que me costo):50 , moneda: USD , Precio(precio al que lo voy a vender): 100000 MN , cantidad :2 , Detalles : buena cadena de plata, imagenes: 3 , categoria: Accesorios, Pais(country): otro (esto significa que hay taxes o sea ) */ }
   const columns = [
     {
@@ -441,7 +447,6 @@ function ListItems({ items, username }) {
       editable: false,
       sortable: false,
       filterable: false,
-      hide: shouldHideColumn('firstImage'),
       renderHeader: (params) => (
         <Box
           onClick={() => handleColumnHeaderClick('firstImage')}
@@ -562,7 +567,6 @@ function ListItems({ items, username }) {
       headerName: 'ID',
       width: getColumnWidth(60, 70, 80, 90, 'sku'),
       editable: false,
-      hide: shouldHideColumn('sku'),
       renderCell: (params) => (
         <Typography
           variant="body2"
@@ -617,7 +621,6 @@ function ListItems({ items, username }) {
       width: getColumnWidth(70, 80, 100, 120, 'cant'),
       editable: true,
       type: 'number',
-      hide: shouldHideColumn('cant'),
       renderCell: (params) => (
         <Typography
           variant="body2"
@@ -634,7 +637,6 @@ function ListItems({ items, username }) {
       headerName: isMobile ? 'Precio' : 'Price',
       width: getColumnWidth(100, 120, 150, 180, 'precio'),
       editable: true,
-      hide: shouldHideColumn('precio'),
       renderHeader: (params) => (
         <Box
           onClick={() => handleColumnHeaderClick('precio')}
@@ -762,7 +764,6 @@ function ListItems({ items, username }) {
       headerName: isMobile ? (expandedColumn === 'costo' ? 'Costo' : 'Cst') : 'Costo',
       width: getColumnWidth(80, 160, 180, 200, 'costo'), // Reducido ancho móvil de 140 a 80
       editable: true,
-      hide: shouldHideColumn('costo'),
       renderHeader: (params) => (
         <Box
           onClick={() => handleColumnHeaderClick('costo')}
@@ -890,7 +891,6 @@ function ListItems({ items, username }) {
       headerName: isMobile ? (expandedColumn === 'sales' ? 'Sales' : 'Sls') : 'Sales',
       width: getColumnWidth(60, 80, 100, 120, 'sales'),
       editable: false,
-      hide: shouldHideColumn('sales'),
       renderHeader: (params) => (
         <Box
           onClick={() => handleColumnHeaderClick('sales')}
@@ -2062,13 +2062,23 @@ function ListItems({ items, username }) {
         }}>
           <ThemeProvider theme={inventoryTheme}>
             <DataGrid
-              key={`datagrid-${expandedColumn || 'normal'}`} // Forzar re-render cuando cambia acordeón
+              key={`datagrid-${isMobile ? 'mobile' : 'desktop'}-${expandedColumn || 'normal'}`} // Forzar re-render cuando cambia acordeón o dispositivo
               rows={orows}
               columns={columns}
               apiRef={apiRef}
               editMode="row"
               rowModesModel={rowModesModel}
               onRowModesModelChange={setRowModesModel}
+
+              // Controlar visibilidad de columnas explícitamente
+              columnVisibilityModel={{
+                firstImage: !shouldHideColumn('firstImage'),
+                sku: !shouldHideColumn('sku'),
+                cant: !shouldHideColumn('cant'),
+                precio: !shouldHideColumn('precio'),
+                costo: !shouldHideColumn('costo'),
+                sales: !shouldHideColumn('sales'),
+              }}
 
               // Configuración responsive
               columnBuffer={isMobile ? 15 : 5} // Incrementar buffer para mostrar todas las columnas
