@@ -36,7 +36,9 @@ const TestModeContainer = styled(Paper)(({ theme }) => ({
     borderColor: theme.palette.mode === 'dark' ? '#333' : '#ddd',
 }));
 
-const ServerListItem = styled(ListItem)(({ theme, isActive }) => ({
+const ServerListItem = styled(ListItem, {
+    shouldForwardProp: (prop) => prop !== 'isActive',
+})(({ theme, isActive }) => ({
     border: '2px solid',
     borderColor: isActive ? theme.palette.primary.main : theme.palette.divider,
     borderRadius: theme.spacing(1),

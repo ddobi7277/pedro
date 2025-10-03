@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta, timezone
 import jwt
-from jwt import InvalidTokenError
 import json
 from database import SessionLocal
 # from jwt.exceptions import InvalidTokenError  # This import may not be needed
@@ -309,6 +308,12 @@ async def get_current_user(db:Session= Depends(get_db), token: str= Depends(oaut
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    
+    # Check for null or invalid tokens first
+    if not token or token == "null" or token == "undefined" or len(token.strip()) < 10:
+        print(f"[TOKEN] Invalid or null token received: '{token}'")
+        raise credentials_exception
+    
     try:
         print(f"[TOKEN] Decoding token: {token[:50]}...")
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -320,7 +325,7 @@ async def get_current_user(db:Session= Depends(get_db), token: str= Depends(oaut
         if user is None:
             print("[TOKEN] User not found in database")
             raise credentials_exception 
-    except (InvalidTokenError, Exception) as e:
+    except Exception as e:
         print(f"[TOKEN] Token validation error: {e}")
         raise credentials_exception
     #user_ob= UserCreate.model_validate(user)

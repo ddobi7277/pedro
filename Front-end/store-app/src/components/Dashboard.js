@@ -12,9 +12,15 @@ import ServerErrorHandler, { ServerErrorScreen } from './ServerErrorHandler';
 export default function Dashboard() {
   logDebug('Dashboard component rendering');
   const navigate = useNavigate();
-  const [data, setData] = useState([]);
 
-  const [token,] = useState(localStorage.getItem('token'));
+  // Helper function to get valid token
+  const getValidToken = () => {
+    const storedToken = localStorage.getItem('token');
+    return storedToken && storedToken !== 'null' && storedToken !== 'undefined' ? storedToken : null;
+  };
+
+  const [data, setData] = useState([]);
+  const [token,] = useState(getValidToken());
   const [isLoaded, setIsLoaded] = useState(false);
   const [item, setItem] = useState({})
   const [selectedIndex, setSelectedIndex] = useState(-1)
@@ -30,7 +36,6 @@ export default function Dashboard() {
   const [serverError, setServerError] = useState(false);
   const [serverErrorDialog, setServerErrorDialog] = useState(false);
   const [showErrorScreen, setShowErrorScreen] = useState(false);
-
 
   const Card = styled(MuiCard)(({ theme }) => ({
     display: 'flex',
@@ -55,12 +60,20 @@ export default function Dashboard() {
   // const [promptShown, setPromptShown] = useState(false);
   const verifiToken = async () => {
     try {
+      // Verificar que tenemos un token válido
+      const validToken = getValidToken();
+      if (!validToken) {
+        console.error('No valid token found');
+        navigate('/');
+        return;
+      }
+
       // Usar fetchWithFallback para manejo automático de errores de servidor
-      const response = await apiConfig.fetchWithFallback(`verify-token/${token}`, {
+      const response = await apiConfig.fetchWithFallback(`verify-token/${validToken}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': 'Bearer ' + localStorage.getItem('token')
+          'Authorization': 'Bearer ' + (getValidToken() || '')
         },
       });
 
@@ -75,32 +88,38 @@ export default function Dashboard() {
         }
         logAuth(`User authenticated: ${username}`);
 
-        // Verificar si es admin basándose en el username primero (para compatibilidad)
-        if (username === 'pedro') {
-          setIsAdmin(true); // Establecer como admin inmediatamente
-
-          // Intentar verificar con el endpoint admin solo si está disponible
-          try {
-            const adminResponse = await apiConfig.fetchWithFallback('admin/status', {
-              method: 'GET',
-              headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Content-Type': 'application/json'
-              }
-            });
-
-            if (adminResponse.ok) {
-              const adminData = await adminResponse.json();
-              setIsAdmin(adminData.is_admin);
-              logDebug('Admin status verified from server', adminData);
-            } else {
-              logDebug('Admin endpoint not available, using username-based verification');
+        // Verificar estado de admin desde el servidor
+        try {
+          const userResponse = await apiConfig.fetchWithFallback('me', {
+            method: 'GET',
+            headers: {
+              'Authorization': 'Bearer ' + (getValidToken() || ''),
+              'Content-Type': 'application/json'
             }
-          } catch (error) {
-            logDebug('Admin endpoint error, using fallback', error);
+          });
+
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            setIsAdmin(userData.is_admin);
+            logDebug('User info retrieved from server', userData);
+          } else {
+            // Fallback: verificar si es admin basándose en el username (para compatibilidad)
+            if (username === 'pedro') {
+              setIsAdmin(true);
+              logDebug('Using username-based admin verification as fallback');
+            } else {
+              setIsAdmin(false);
+            }
           }
-        } else {
-          setIsAdmin(false);
+        } catch (error) {
+          logDebug('User info endpoint error, using fallback', error);
+          // Fallback: verificar si es admin basándose en el username
+          if (username === 'pedro') {
+            setIsAdmin(true);
+            logDebug('Using username-based admin verification due to error');
+          } else {
+            setIsAdmin(false);
+          }
         }
 
         // Obtener items del usuario
@@ -109,7 +128,7 @@ export default function Dashboard() {
           method: 'GET',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
+            'Authorization': 'Bearer ' + (getValidToken() || '')
           }
         });
 

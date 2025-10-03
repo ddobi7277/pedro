@@ -114,6 +114,23 @@ async def  read_users(request:Request,current_user:User= Depends(get_current_use
             return await get_users(db,0,100)
     else:
             return credentials_exception
+
+@app.get("/me")
+async def get_current_user_info(current_user: User = Depends(get_current_user)):
+    """Get current user information including admin status"""
+    if current_user:
+        return {
+            "username": current_user.username,
+            "full_name": current_user.full_name,
+            "is_admin": current_user.is_admin,
+            "id": current_user.id
+        }
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You're not authorized!",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
     
 @app.get("/get_seller_items")
 async def get_seller_items(request:Request,current_user:User= Depends(get_current_user), db:Session= Depends(get_db)):
@@ -663,4 +680,6 @@ async def catch_all(path: str, request:Request):
             
 
 
-    
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

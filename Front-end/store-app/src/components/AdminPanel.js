@@ -37,6 +37,12 @@ import { apiConfig } from '../config/apiConfig';
 import TestModeToggle from './TestModeToggle';
 
 export default function AdminPanel() {
+    // Helper function to get valid token
+    const getValidToken = () => {
+        const storedToken = localStorage.getItem('token');
+        return storedToken && storedToken !== 'null' && storedToken !== 'undefined' ? storedToken : null;
+    };
+
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -68,7 +74,14 @@ export default function AdminPanel() {
         setLoading(true);
         setError('');
         try {
-            const token = localStorage.getItem('access_token');
+            const token = getValidToken();
+            if (!token) {
+                setError('No valid token found');
+                setUsers([]);
+                setLoading(false);
+                return;
+            }
+
             const response = await apiConfig.fetchWithFallback('users', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -114,7 +127,13 @@ export default function AdminPanel() {
         setSuccess('');
 
         try {
-            const token = localStorage.getItem('access_token');
+            const token = getValidToken();
+            if (!token) {
+                setError('No valid token found');
+                setLoading(false);
+                return;
+            }
+
             const response = await fetch(`${getApiUrl()}/admin/users/${editDialog.user.id}`, {
                 method: 'PUT',
                 headers: {
@@ -145,7 +164,13 @@ export default function AdminPanel() {
         setSuccess('');
 
         try {
-            const token = localStorage.getItem('access_token');
+            const token = getValidToken();
+            if (!token) {
+                setError('No valid token found');
+                setLoading(false);
+                return;
+            }
+
             const response = await fetch(`${getApiUrl()}/admin/users/${deleteDialog.user.id}`, {
                 method: 'DELETE',
                 headers: {
