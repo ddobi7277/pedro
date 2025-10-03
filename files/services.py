@@ -185,10 +185,13 @@ async def delete_item(item_id:str, db:Session):
     db.commit()
     
 async def update_item(item_id:str, item: ItemEdit, db:Session):
-    # Obtener el item actual
+    # Obtener el item actual con consulta fresca
     old_item = db.query(Item).filter(Item.id == item_id).first()
     if not old_item:
         return None
+    
+    # Guardar el valor original de images para no modificarlo
+    original_images = old_item.images
     
     # Actualizar SOLO los campos que están en ItemEdit, NO tocar images
     old_item.name = item.name
@@ -200,8 +203,8 @@ async def update_item(item_id:str, item: ItemEdit, db:Session):
     old_item.category = item.category
     old_item.detalles = item.detalles
     
-    # IMPORTANTE: NO modificar old_item.images para evitar el error SQLite
-    # El campo images permanece exactamente como estaba
+    # IMPORTANTE: Asegurar que images permanece como string JSON original
+    old_item.images = original_images
     
     # Hacer el commit explícito
     try:

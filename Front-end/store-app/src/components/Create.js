@@ -34,11 +34,14 @@ const Card = styled(MuiCard)(({ theme }) => ({
   flexDirection: 'column',
   alignSelf: 'center',
   width: '100%',
-  padding: theme.spacing(4),
-  gap: theme.spacing(2),
+  padding: theme.spacing(3),
+  gap: theme.spacing(1),
   margin: 'auto',
   [theme.breakpoints.up('sm')]: {
-    maxWidth: '450px',
+    maxWidth: '700px', // Más ancho para acomodar campos lado a lado
+  },
+  [theme.breakpoints.up('md')]: {
+    maxWidth: '800px', // Aún más ancho en desktop
   },
   boxShadow:
     'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
@@ -87,6 +90,7 @@ function Create() {
   const [editcat, setEditCat] = useState('');
   const [catname, setCatName] = useState("");
   const [currency, setCurrency] = useState('USD')
+  const [priceCurrency, setPriceCurrency] = useState('MN') // Nueva moneda para price
   const [token,] = useState(localStorage.getItem('token'))
   const [category, setCategory] = useState("");
   const [name, setName] = useState('');
@@ -160,6 +164,14 @@ function Create() {
 
   }, []);
   const validateInputs = () => {
+    console.log('🔍 Validating inputs...');
+    console.log('📊 Validation data:', {
+      name: `"${name}" (length: ${name.length})`,
+      cost: `"${cost}" (length: ${cost.length})`,
+      price: `"${price}" (length: ${price.length})`,
+      catname: `"${catname}" (length: ${catname.length})`,
+      cant: `"${cant}" (length: ${cant.length})`
+    });
 
     let isValid = true;
     if (name.length === 0) {
@@ -186,7 +198,7 @@ function Create() {
       setErrorPrice(false);
       setErrorPriceM('');
     }
-    if (category.length === 0) {
+    if (catname.length === 0) {
       setErrorCatM('Debe llenar todos los espacios con algo')
       setErrorCat(true)
       isValid = false;
@@ -203,6 +215,7 @@ function Create() {
       setErrorCantM('');
     }
 
+    console.log(`📋 Validation result: ${isValid ? '✅ PASSED' : '❌ FAILED'}`);
     return isValid;
   };
 
@@ -251,8 +264,25 @@ function Create() {
   };
 
   const handleSubmit = async () => {
+    console.log('🚀 handleSubmit initiated');
+    console.log('📝 Form values:', {
+      name,
+      cost,
+      price,
+      cant,
+      catname,
+      category,
+      detalles,
+      country,
+      currency,
+      selectedImages: selectedImages.length
+    });
+
     console.log('Country', country)
     if (validateInputs()) {
+      console.log('✅ Validation passed, proceeding with API call...');
+      console.log('🔑 Token:', token ? 'Present' : 'Missing');
+      console.log('🌐 API URL for creat/item:', getApiUrl('creat/item'));
       try {
         let response;
 
@@ -261,9 +291,12 @@ function Create() {
           const formData = new FormData();
           formData.append('name', name);
           formData.append('cost', currency === 'MN' ? (cost / tasaCambio).toFixed(2) : cost); // Costo según moneda seleccionada → USD
-          formData.append('price', price); // Price se ingresa en MN
+          // Price: Convert to MN if entered in USD, keep as is if entered in MN
+          const priceMN = priceCurrency === 'USD' ? (parseFloat(price) * tasaCambio).toFixed(2) : price;
+          const priceUSD = priceCurrency === 'MN' ? (parseFloat(price) / tasaCambio).toFixed(2) : price;
+          formData.append('price', priceMN); // Always store price in MN
           formData.append('tax', country === 'Cuba' ? 0 : ((currency === 'MN' ? (cost / tasaCambio) : cost) * 0.16).toFixed(2)); // Tax sobre costo en USD
-          formData.append('price_USD', (price / tasaCambio).toFixed(2)); // Price MN → USD
+          formData.append('price_USD', priceUSD); // Always store price_USD
           formData.append('cant', cant);
           formData.append('category', catname);
           formData.append('detalles', detalles);
@@ -290,12 +323,15 @@ function Create() {
               setFallbackMode(true);
 
               // Create JSON object for original endpoint
+              const priceMN = priceCurrency === 'USD' ? (parseFloat(price) * tasaCambio).toFixed(2) : price;
+              const priceUSD = priceCurrency === 'MN' ? (parseFloat(price) / tasaCambio).toFixed(2) : price;
+
               const item = {
                 "name": name,
                 "cost": currency === 'MN' ? (cost / tasaCambio).toFixed(2) : cost, // Costo según moneda seleccionada → USD
-                "price": price, // Price se ingresa en MN
+                "price": priceMN, // Always store price in MN
                 "tax": country === 'Cuba' ? 0 : ((currency === 'MN' ? (cost / tasaCambio) : cost) * 0.16).toFixed(2), // Tax sobre costo en USD
-                "price_USD": (price / tasaCambio).toFixed(2), // Price MN → USD
+                "price_USD": priceUSD, // Always store price_USD
                 "cant": cant,
                 "category": catname,
                 "detalles": detalles,
@@ -318,12 +354,15 @@ function Create() {
           }
         } else {
           // Use JSON when no images
+          const priceMN = priceCurrency === 'USD' ? (parseFloat(price) * tasaCambio).toFixed(2) : price;
+          const priceUSD = priceCurrency === 'MN' ? (parseFloat(price) / tasaCambio).toFixed(2) : price;
+
           const item = {
             "name": name,
             "cost": currency === 'MN' ? (cost / tasaCambio).toFixed(2) : cost, // Costo según moneda seleccionada → USD
-            "price": price, // Price se ingresa en MN
+            "price": priceMN, // Always store price in MN
             "tax": country === 'Cuba' ? 0 : ((currency === 'MN' ? (cost / tasaCambio) : cost) * 0.16).toFixed(2), // Tax sobre costo en USD
-            "price_USD": (price / tasaCambio).toFixed(2), // Price MN → USD
+            "price_USD": priceUSD, // Always store price_USD
             "cant": cant,
             "category": catname,
             "detalles": detalles,
@@ -368,6 +407,8 @@ function Create() {
         return () => clearTimeout(timer);
 
       }
+    } else {
+      console.log('❌ Validation failed - form not submitted');
     }
 
   }
@@ -487,11 +528,11 @@ function Create() {
           <Typography
             component="h1"
             variant="h4"
-            sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
+            sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)', mb: 3 }}
           >
             Registra tu Producto
           </Typography>
-          <FormControl>
+          <FormControl sx={{ mb: 1 }}>
             <FormLabel>Nombre del Producto:</FormLabel>
             <TextField
               error={errorName}
@@ -512,7 +553,7 @@ function Create() {
             />
           </FormControl>
 
-          <FormControl fullWidth component="fieldset">
+          <FormControl fullWidth component="fieldset" sx={{ mb: 1 }}>
             <FormLabel component="legend">Costo del Producto:</FormLabel>
             <Box display="flex"  >
               <TextField
@@ -547,9 +588,9 @@ function Create() {
 
           </FormControl>
 
-          <Box display="flex" > {/* Flexbox for layout */}
-            <FormControl fullWidth sx={{ marginRight: theme.spacing(5) }}> {/* Margin for spacing */}
-              <FormLabel component="legend">Precio:</FormLabel>
+          <FormControl fullWidth component="fieldset" sx={{ mb: 1 }}>
+            <FormLabel component="legend">Precio de Venta:</FormLabel>
+            <Box display="flex">
               <TextField
                 error={errorPrice}
                 helperText={errorPriceM}
@@ -560,16 +601,112 @@ function Create() {
                 value={price}
                 autoFocus
                 required
-                fullWidth
                 variant="outlined"
                 color={errorPrice ? 'error' : 'primary'}
-                sx={{ ariaLabel: 'price', width: '120%', marginRight: '10px' }}
-                onChange={(e) => { setPrice(e.target.value) }}
+                sx={{ ariaLabel: 'price', marginRight: '10px', m: 1 }}
+                onChange={(e) => {
+                  const newPrice = e.target.value;
+                  setPrice(newPrice);
+                  // Auto-calculate price in other currency
+                  if (newPrice && !isNaN(newPrice)) {
+                    if (priceCurrency === 'MN') {
+                      // If inputting MN, calculate USD equivalent
+                      const usdPrice = (parseFloat(newPrice) / tasaCambio).toFixed(2);
+                      console.log(`Price MN: ${newPrice} → USD: ${usdPrice} (rate: ${tasaCambio})`);
+                    } else {
+                      // If inputting USD, calculate MN equivalent  
+                      const mnPrice = (parseFloat(newPrice) * tasaCambio).toFixed(2);
+                      console.log(`Price USD: ${newPrice} → MN: ${mnPrice} (rate: ${tasaCambio})`);
+                    }
+                  }
+                }}
                 onFocus={() => { setShow(false) }}
-
               />
+              <Box sx={{ m: 1 }}>
+                <Select
+                  color={errorPrice ? 'error' : 'primary'}
+                  labelId="price-currency-select-label"
+                  id="price-currency-select"
+                  value={priceCurrency}
+                  label="Moneda"
+                  onChange={(e) => {
+                    const newCurrency = e.target.value;
+                    setPriceCurrency(newCurrency);
+
+                    // Convert existing price to new currency
+                    if (price && !isNaN(price)) {
+                      if (newCurrency === 'MN' && priceCurrency === 'USD') {
+                        // Converting USD to MN
+                        const convertedPrice = (parseFloat(price) * tasaCambio).toFixed(2);
+                        setPrice(convertedPrice);
+                        console.log(`Converted USD ${price} → MN ${convertedPrice}`);
+                      } else if (newCurrency === 'USD' && priceCurrency === 'MN') {
+                        // Converting MN to USD
+                        const convertedPrice = (parseFloat(price) / tasaCambio).toFixed(2);
+                        setPrice(convertedPrice);
+                        console.log(`Converted MN ${price} → USD ${convertedPrice}`);
+                      }
+                    }
+                  }}
+                  sx={{ width: '80%' }}
+                >
+                  <MenuItem value={'MN'}>MN</MenuItem>
+                  <MenuItem value={'USD'}>USD</MenuItem>
+                </Select>
+              </Box>
+            </Box>
+          </FormControl>
+          {/* Fila: Categoría y Cantidad lado a lado */}
+          <Box display="flex" gap={2} sx={{ mb: 1 }}>
+            <FormControl sx={{ flex: 1 }}>
+              <FormLabel component="legend">Categoria:</FormLabel>
+              <Box sx={{ m: 1 }}><Select
+                color={errorCat ? 'error' : 'primary'}
+                error={errorCat}
+                labelId="demo2-simple-select-label"
+                id="demo2-simple-select"
+                value={catname}
+                label="Categoria"
+                onFocus={() => { setShow(true); console.log('show:', show + '- newCat:', newcat) }}
+                onChange={(e) => {
+                  const selectedOption = categoryList.find(
+                    (option) => option.name === e.target.value
+                  );
+                  setCategory(selectedOption.id);
+                  setCatName(e.target.value);
+                }}
+                sx={{ width: show ? '40%' : '100%' }}
+                placeholder="Seleccione o Cree una Categoria"
+              >
+                {categoryList.map((option) => (
+                  <MenuItem key={option.id} value={option.name} >{option.name}</MenuItem>
+                ))}
+              </Select>
+                {errorCat && <FormHelperText error>{errorCatM}</FormHelperText>}
+                {show && <Button onClick={(e) => { console.log(e.target); newcat ? handleNewCat() : setNewCat(true) }} variant="outlined" sx={{ width: '10%', margin: '6px' }} startIcon={<AddIcon />} />}
+                {show && <Button onClick={() => { newcat ? handleEditCat() : setNewCat(true) }} variant="outlined" sx={{ width: '10%', margin: '3px' }} startIcon={<EditIcon />} />}
+                {show && <Button onClick={() => { handleDeleteCat() }} variant="outlined" sx={{ width: '10%', margin: '3px' }} startIcon={<DeleteIcon />} />}
+              </Box>
+              {(newcat && show) && <FormControl fullWidth>
+                <TextField
+                  error={errorName}
+                  helperText={errorC}
+                  id="newCat"
+                  type="text"
+                  name="newCat"
+                  placeholder="Introduzca su nueva categoria"
+                  autoFocus
+                  required
+                  fullWidth
+                  variant="outlined"
+                  color={errorName ? 'error' : 'primary'}
+                  sx={{ ariaLabel: 'cant', width: '80%', m: 1 }}
+                  onChange={(e) => { setEditCat(e.target.value) }}
+                />
+              </FormControl>}
             </FormControl>
-            <FormControl fullWidth>
+
+            <FormControl sx={{ flex: 1 }}>
               <FormLabel component="legend">Cantidad:</FormLabel>
               <TextField
                 error={errorCant}
@@ -584,163 +721,112 @@ function Create() {
                 fullWidth
                 variant="outlined"
                 color={errorCant ? 'error' : 'primary'}
-                sx={{ ariaLabel: 'cant', width: '80%' }}
+                sx={{ ariaLabel: 'cant', width: '80%', m: 1 }}
                 onChange={(e) => { setCant(e.target.value) }}
                 onFocus={() => { setShow(false) }}
               />
             </FormControl>
-            <FormControl fullWidth>
-              <FormLabel component="legend">Detalles:</FormLabel>
-              <TextField
-                id="detalles"
-                type="text"
-                name="detalles"
-                placeholder="Descripción detallada del producto"
-                value={detalles}
-                multiline
-                rows={3}
-                fullWidth
-                variant="outlined"
-                color="primary"
-                sx={{ ariaLabel: 'detalles', width: '80%' }}
-                onChange={(e) => { setDetalles(e.target.value) }}
-                onFocus={() => { setShow(false) }}
+          </Box>
+
+          <FormControl fullWidth sx={{ mb: 1 }}>
+            <FormLabel component="legend">Detalles:</FormLabel>
+            <TextField
+              id="detalles"
+              type="text"
+              name="detalles"
+              placeholder="Descripción detallada del producto"
+              value={detalles}
+              multiline
+              rows={2}
+              fullWidth
+              variant="outlined"
+              color="primary"
+              sx={{ ariaLabel: 'detalles', width: '80%' }}
+              onChange={(e) => { setDetalles(e.target.value) }}
+              onFocus={() => { setShow(false) }}
+            />
+          </FormControl>
+          <FormControl fullWidth sx={{ mb: 1 }}>
+            <FormLabel component="legend">Imágenes del Producto:</FormLabel>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="image-upload"
+                type="file"
+                multiple
+                onChange={handleImageSelect}
               />
-            </FormControl>
-            <FormControl fullWidth>
-              <FormLabel component="legend">Imágenes del Producto:</FormLabel>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-                <input
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  id="image-upload"
-                  type="file"
-                  multiple
-                  onChange={handleImageSelect}
-                />
-                <label htmlFor="image-upload">
-                  <IconButton color="primary" aria-label="upload picture" component="span">
-                    <PhotoCameraIcon />
-                  </IconButton>
-                  <span style={{ marginLeft: 8 }}>Agregar imágenes ({imagePreviews.length}/5)</span>
-                </label>
-                {fallbackMode && (
-                  <Typography variant="body2" color="warning.main" sx={{ fontSize: '0.875rem', fontStyle: 'italic' }}>
-                    ⚠️ Servidor no actualizado: Las imágenes no se guardarán (solo texto)
-                  </Typography>
-                )}
-                {imagePreviews.length > 0 && (
-                  <Box sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 2,
-                    maxHeight: 200,
-                    overflow: 'auto'
-                  }}>
-                    {imagePreviews.map((img) => (
-                      <Box
-                        key={img.id}
+              <label htmlFor="image-upload">
+                <IconButton color="primary" aria-label="upload picture" component="span">
+                  <PhotoCameraIcon />
+                </IconButton>
+                <span style={{ marginLeft: 8 }}>Agregar imágenes ({imagePreviews.length}/5)</span>
+              </label>
+              {fallbackMode && (
+                <Typography variant="body2" color="warning.main" sx={{ fontSize: '0.875rem', fontStyle: 'italic' }}>
+                  ⚠️ Servidor no actualizado: Las imágenes no se guardarán (solo texto)
+                </Typography>
+              )}
+              {imagePreviews.length > 0 && (
+                <Box sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 1,
+                  maxHeight: 150,
+                  overflow: 'auto'
+                }}>
+                  {imagePreviews.map((img) => (
+                    <Box
+                      key={img.id}
+                      sx={{
+                        position: 'relative',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <Avatar
+                        src={img.preview}
+                        sx={{ width: 80, height: 80 }}
+                        variant="rounded"
+                      />
+                      <IconButton
+                        color="error"
+                        size="small"
+                        onClick={() => handleImageRemove(img.id)}
                         sx={{
-                          position: 'relative',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center'
+                          position: 'absolute',
+                          top: -5,
+                          right: -5,
+                          backgroundColor: 'white',
+                          '&:hover': { backgroundColor: '#ffebee' }
                         }}
                       >
-                        <Avatar
-                          src={img.preview}
-                          sx={{ width: 80, height: 80 }}
-                          variant="rounded"
-                        />
-                        <IconButton
-                          color="error"
-                          size="small"
-                          onClick={() => handleImageRemove(img.id)}
-                          sx={{
-                            position: 'absolute',
-                            top: -5,
-                            right: -5,
-                            backgroundColor: 'white',
-                            '&:hover': { backgroundColor: '#ffebee' }
-                          }}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    ))}
-                  </Box>
-                )}
-              </Box>
-            </FormControl>
-          </Box>
-          <FormControl>
-            <FormLabel component="legend">Categoria:</FormLabel>
-            <Box sx={{ m: 1 }}><Select
-              color={errorCat ? 'error' : 'primary'}
-              error={errorCat}
-              labelId="demo2-simple-select-label"
-              id="demo2-simple-select"
-              value={catname}
-              label="Categoria" // Change label to "Moneda"
-              onFocus={() => { setShow(true); console.log('show:', show + '- newCat:', newcat) }}
-              onChange={(e) => {
-                const selectedOption = categoryList.find(
-                  (option) => option.name === e.target.value
-                );
-                setCategory(selectedOption.id);
-                setCatName(e.target.value);
-              }}
-              sx={{ width: show ? '40%' : '100%' }} // Set width to fill the remaining space
-              placeholder="Seleccione o Cree una Categoria"
-            >
-              {categoryList.map((option) => (
-                <MenuItem key={option.id} value={option.name} >{option.name}</MenuItem>
-              ))}
-            </Select>
-              {errorCat && <FormHelperText error>{errorCatM}</FormHelperText>}
-              {show && <Button onClick={(e) => { console.log(e.target); newcat ? handleNewCat() : setNewCat(true) }} variant="outlined" sx={{ width: '10%', margin: '6px' }} startIcon={<AddIcon />} />}
-              {show && <Button onClick={() => { newcat ? handleEditCat() : setNewCat(true) }} variant="outlined" sx={{ width: '10%', margin: '3px' }} startIcon={<EditIcon />} />}
-              {show && <Button onClick={() => { handleDeleteCat() }} variant="outlined" sx={{ width: '10%', margin: '3px' }} startIcon={<DeleteIcon />} />}
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  ))}
+                </Box>
+              )}
             </Box>
-            {(newcat && show) && <FormControl fullWidth>
-              <TextField
-                error={errorName}
-                helperText={errorC}
-                id="newCat"
-                type="text"
-                name="newCat"
-                placeholder="Introduzca su nueva categoria"
-                autoFocus
-                required
-                fullWidth
-                variant="outlined"
-                color={errorName ? 'error' : 'primary'}
-                sx={{ ariaLabel: 'cant', width: '80%', m: 1 }}
-                onChange={(e) => { setEditCat(e.target.value) }}
-
-
-              />
-            </FormControl>}
-
           </FormControl>
-          <FormControl>
+          <FormControl sx={{ mb: 1 }}>
             <FormLabel component="legend">Pais donde lo compro:</FormLabel>
-            <Box ><Select
-
+            <Box><Select
               labelId="demo2-simple-select-label"
               id="demo2-simple-select"
               value={country}
-              label="Categoria" // Change label to "Moneda"
+              label="Categoria"
               onFocus={() => { setShow(false) }}
               onChange={(e) => {
                 setCountry(e.target.value)
               }}
-              sx={{ width: '40%' }} // Set width to fill the remaining space
+              sx={{ width: '40%' }}
               placeholder="Seleccione o Cree una Categoria"
             >
               {['Cuba', 'Otro'].map((option) => (
                 <MenuItem key={option} value={option} >{option}</MenuItem>))}
-
             </Select>
             </Box>
           </FormControl>

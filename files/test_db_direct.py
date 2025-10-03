@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+0#!/usr/bin/env python3
 """
 Script de prueba directo para verificar la base de datos
 """

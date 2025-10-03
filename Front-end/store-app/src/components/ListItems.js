@@ -20,6 +20,7 @@ import Snackbar from '@mui/material/Snackbar';
 import { getApiUrl, apiConfig } from '../config/apiConfig';
 import Alert from '@mui/material/Alert';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
@@ -61,10 +62,19 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 
-// Tema personalizado para la tabla
+// Tema personalizado para la tabla con mejoras responsive
 const inventoryTheme = createTheme({
   typography: {
     fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  },
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 900,
+      lg: 1200,
+      xl: 1536,
+    },
   },
   components: {
     MuiDataGrid: {
@@ -73,6 +83,12 @@ const inventoryTheme = createTheme({
           border: 'none',
           borderRadius: '12px',
           overflow: 'hidden',
+          // Responsive font sizes
+          fontSize: {
+            xs: '0.75rem',
+            sm: '0.8rem',
+            md: '0.875rem'
+          },
           '& .MuiDataGrid-columnHeaders': {
             backgroundColor: blueGrey[50],
             borderRadius: '0',
@@ -80,22 +96,30 @@ const inventoryTheme = createTheme({
             color: 'text.secondary',
           },
           '& .MuiDataGrid-columnHeader': {
-            padding: '0 16px',
+            padding: {
+              xs: '0 8px',
+              sm: '0 12px',
+              md: '0 16px'
+            },
             borderRight: 'none',
           },
           '& .MuiDataGrid-cell': {
-            padding: '0 16px',
+            padding: {
+              xs: '4px 8px',
+              sm: '6px 12px',
+              md: '8px 16px'
+            },
             borderBottom: `1px solid ${grey[100]}`,
             display: 'flex',
             alignItems: 'center',
-            fontSize: '0.875rem',
+            fontSize: 'inherit',
             '&:focus, &:focus-within': {
               outline: 'none',
             },
           },
           '& .MuiDataGrid-columnHeaderTitle': {
             fontWeight: 600,
-            fontSize: '0.875rem',
+            fontSize: 'inherit',
           },
           '& .MuiDataGrid-columnSeparator': {
             display: 'none',
@@ -146,8 +170,10 @@ const StatusChip = styled(Chip)(({ theme }) => ({
 const paginationModel = { page: 0, pageSize: 10 };
 function ListItems({ items, username }) {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // <= 600px
+  const isTablet = useMediaQuery(theme.breakpoints.down('md')); // <= 900px
+  const isSmallLaptop = useMediaQuery(theme.breakpoints.down('lg')); // <= 1200px
+  const isLargeLaptop = useMediaQuery(theme.breakpoints.up('xl')); // >= 1536px
 
   const apiRef = useGridApiRef()
   const navigate = useNavigate();
@@ -156,7 +182,7 @@ function ListItems({ items, username }) {
   const [deleteI, setDelete] = useState(false);
   const [token,] = useState(localStorage.getItem('token'));
   const [tasaCambio, setTazaCambio] = useState(
-    parseInt(localStorage.getItem('tasaCambio')) || 360
+    parseInt(localStorage.getItem('tasaCambio')) || 450  // Cambiado de 360 a 450
   );
   const [cant, setCant] = useState(0);
   const [gender, setGender] = useState('Masculino');
@@ -347,20 +373,41 @@ function ListItems({ items, username }) {
     });
     return rows
   }
-  { /* ok voy a crear un producto, nombre: cadena de plata , costo(lo que me costo):50 , moneda: USD , Precio(precio al que lo voy a vender): 100000 MN , cantidad :2 , Detalles : buena cadena de plata, imagenes: 3 , categoria: Accesorios, Pais(country): otro (esto significa que hay taxes o sea ) */ }
+
+  // Función helper para calcular anchos responsive (optimizados para evitar scroll)
+  const getColumnWidth = (mobileWidth, tabletWidth, laptopWidth, desktopWidth = laptopWidth) => {
+    // Reducir todos los anchos para evitar scroll horizontal
+    if (isMobile) return mobileWidth * 0.8;
+    if (isTablet) return tabletWidth * 0.9;
+    if (isSmallLaptop) return laptopWidth * 0.95;
+    return isLargeLaptop ? desktopWidth : laptopWidth;
+  };
+
+  // Función para determinar qué columnas ocultar en diferentes dispositivos (más agresiva)
+  const shouldHideColumn = (column) => {
+    const hideOnMobile = ['status', 'costo', 'sales', 'inversion', 'revenue', 'detalles'];
+    const hideOnTablet = ['sales', 'status'];
+    const hideOnSmallLaptop = ['sales'];
+
+    if (isMobile && hideOnMobile.includes(column)) return true;
+    if (isTablet && !isMobile && hideOnTablet.includes(column)) return true;
+    if (isSmallLaptop && !isTablet && hideOnSmallLaptop.includes(column)) return true;
+    return false;
+  }; { /* ok voy a crear un producto, nombre: cadena de plata , costo(lo que me costo):50 , moneda: USD , Precio(precio al que lo voy a vender): 100000 MN , cantidad :2 , Detalles : buena cadena de plata, imagenes: 3 , categoria: Accesorios, Pais(country): otro (esto significa que hay taxes o sea ) */ }
   const columns = [
     {
       field: 'name',
       headerName: 'Product',
-      width: isMobile ? 160 : isTablet ? 180 : 200, // Menos ancho ya que no incluye imagen
+      width: getColumnWidth(120, 160, 200, 250),
       editable: true,
+      flex: isMobile ? 1 : 0, // Usar flex en móvil para mejor responsividad
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', padding: '8px 0' }}>
           <Typography
             variant="body2"
             fontWeight="500"
             sx={{
-              fontSize: isMobile ? '0.875rem' : '0.875rem',
+              fontSize: isMobile ? '0.75rem' : isTablet ? '0.8rem' : '0.875rem',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap'
@@ -374,7 +421,7 @@ function ListItems({ items, username }) {
     {
       field: 'firstImage',
       headerName: 'Photo',
-      width: isMobile ? 70 : 80,
+      width: getColumnWidth(60, 70, 80, 90),
       editable: false,
       sortable: false,
       filterable: false,
@@ -481,14 +528,14 @@ function ListItems({ items, username }) {
     {
       field: 'sku',
       headerName: 'ID',
-      width: isMobile ? 80 : 80, // Más ancho en móvil
+      width: getColumnWidth(60, 70, 80, 90),
       editable: false,
       renderCell: (params) => (
         <Typography
           variant="body2"
           color="text.secondary"
           fontWeight="500"
-          sx={{ fontSize: isMobile ? '0.875rem' : '0.875rem' }} // Tamaño normal
+          sx={{ fontSize: isMobile ? '0.75rem' : isTablet ? '0.8rem' : '0.875rem' }}
         >
           {params.row.id ? params.row.id.slice(-4) : 'N/A'}
         </Typography>
@@ -497,9 +544,9 @@ function ListItems({ items, username }) {
     {
       field: 'status',
       headerName: 'Status',
-      width: isMobile ? 90 : 120,
+      width: getColumnWidth(90, 100, 120, 140),
       editable: false,
-      hide: isMobile, // Ocultar en móvil para ahorrar espacio
+      hide: shouldHideColumn('status'),
       renderCell: (params) => {
         const quantity = params.row.cant || 0;
         let status = 'In Stock';
@@ -535,7 +582,7 @@ function ListItems({ items, username }) {
     {
       field: 'cant',
       headerName: 'Stock',
-      width: isMobile ? 90 : 100, // Más ancho
+      width: getColumnWidth(70, 80, 100, 120),
       editable: true,
       type: 'number',
       renderCell: (params) => (
@@ -543,7 +590,7 @@ function ListItems({ items, username }) {
           variant="body2"
           fontWeight="500"
           textAlign="center"
-          sx={{ fontSize: isMobile ? '0.875rem' : '0.875rem' }} // Tamaño normal
+          sx={{ fontSize: isMobile ? '0.75rem' : isTablet ? '0.8rem' : '0.875rem' }}
         >
           {params.value || 0}
         </Typography>
@@ -552,103 +599,202 @@ function ListItems({ items, username }) {
     {
       field: 'precio',
       headerName: 'Price',
-      width: isMobile ? 140 : 200, // Más ancho en móvil
+      width: getColumnWidth(100, 120, 150, 180), // Reducido significativamente
       editable: true,
-      renderCell: (params) => (
-        <Typography variant="body2" fontWeight="500">
-          {params.value || `${params.row.price_MN || '0'} MN - ${params.row.price_USD || '0'} USD`}
-        </Typography>
-      ),
-      renderEditCell: (params) => (
-        <Box display="flex" gap={1} alignItems="center">
-          <TextField
-            size="small"
-            label="MN"
-            type="number"
-            defaultValue={params.row.price_MN}
-            onChange={(e) => {
-              const newValue = e.target.value;
-              setEditingChanges(prev => ({
-                ...prev,
-                [params.id]: {
-                  ...prev[params.id],
-                  ...params.row,
-                  price_MN: newValue,
-                  precio: `${newValue} MN - ${params.row.price_USD} USD`
-                }
-              }));
-            }}
-            variant="outlined"
-            sx={{ width: '100px' }}
-          />
-          <TextField
-            size="small"
-            label="USD"
-            type="number"
-            defaultValue={params.row.price_USD}
-            onChange={(e) => {
-              const newValue = e.target.value;
-              setEditingChanges(prev => ({
-                ...prev,
-                [params.id]: {
-                  ...prev[params.id],
-                  ...params.row,
-                  price_USD: newValue,
-                  precio: `${params.row.price_MN || 0} MN - ${newValue} USD`
-                }
-              }));
-            }}
-            variant="outlined"
-            sx={{ width: '100px' }}
-          />
-        </Box>
-      )
+      flex: isMobile ? 0.8 : 0, // Flex más conservador
+      renderCell: (params) => {
+        // Formato más compacto para ahorrar espacio
+        const priceMN = parseFloat(params.row.price_MN || params.row.price || 0);
+        const priceUSD = parseFloat(params.row.price_USD || 0);
+
+        if (isMobile) {
+          // En móvil, mostrar solo MN
+          return (
+            <Typography variant="body2" fontWeight="500" sx={{ fontSize: '0.875rem' }}>
+              {priceMN.toLocaleString()} MN
+            </Typography>
+          );
+        }
+
+        // En tablet/desktop, formato compacto con números completos
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            <Typography variant="body2" sx={{ fontSize: '0.875rem', lineHeight: 1.2, fontWeight: 500 }}>
+              {priceMN.toLocaleString()} MN
+            </Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.875rem', lineHeight: 1.2, fontWeight: 500 }}>
+              {priceUSD.toLocaleString()} USD
+            </Typography>
+          </Box>
+        );
+      },
+      renderEditCell: (params) => {
+        const currentChanges = editingChanges[params.id] || {};
+        const currentPriceMN = currentChanges.price_MN || params.row.price_MN || params.row.price || 0;
+        const currentPriceUSD = currentChanges.price_USD || params.row.price_USD || 0;
+
+        return (
+          <Box
+            display="flex"
+            gap={isMobile ? 0.5 : 1}
+            alignItems="center"
+            flexDirection={isMobile ? 'column' : 'row'}
+            sx={{ width: '100%' }}
+          >
+            <TextField
+              size={isMobile ? 'small' : 'small'}
+              label="MN"
+              type="number"
+              key={`mn-${params.id}-${currentPriceMN}`} // Force re-render
+              defaultValue={currentPriceMN}
+              onBlur={(e) => {
+                const newValueMN = parseFloat(e.target.value) || 0;
+                const calculatedUSD = parseFloat((newValueMN / tasaCambio).toFixed(2));
+                setEditingChanges(prev => ({
+                  ...prev,
+                  [params.id]: {
+                    ...prev[params.id],
+                    // Solo actualizar campos relacionados con Price
+                    price_MN: newValueMN,
+                    price: newValueMN,  // Para el backend
+                    price_USD: calculatedUSD,
+                    precio: `${newValueMN} MN - ${calculatedUSD} USD`
+                  }
+                }));
+              }}
+              variant="outlined"
+              sx={{ width: isMobile ? '100%' : '100px' }}
+            />
+            <TextField
+              size={isMobile ? 'small' : 'small'}
+              label="USD"
+              type="number"
+              key={`usd-${params.id}-${currentPriceUSD}`} // Force re-render
+              defaultValue={currentPriceUSD}
+              onBlur={(e) => {
+                const newValueUSD = parseFloat(e.target.value) || 0;
+                const calculatedMN = parseFloat((newValueUSD * tasaCambio).toFixed(2));
+                setEditingChanges(prev => ({
+                  ...prev,
+                  [params.id]: {
+                    ...prev[params.id],
+                    // Solo actualizar campos relacionados con Price
+                    price_USD: newValueUSD,
+                    price_MN: calculatedMN,
+                    price: calculatedMN,  // Para el backend
+                    precio: `${calculatedMN} MN - ${newValueUSD} USD`
+                  }
+                }));
+              }}
+              variant="outlined"
+              sx={{ width: isMobile ? '100%' : '100px' }}
+            />
+          </Box>
+        );
+      }
     },
     {
       field: 'costo',
       headerName: 'Costo',
-      width: isMobile ? 100 : 150,
+      width: getColumnWidth(140, 160, 180, 200),
       editable: true,
-      hide: isMobile, // Ocultar en móvil
+      hide: shouldHideColumn('costo'),
       renderCell: (params) => {
-        const costo = parseFloat(params.row.inversion_USD) || 0;
+        const costoUSD = parseFloat(params.row.cost) || 0;  // Usar params.row.cost, no inversion_USD
+        const costoMN = (costoUSD * tasaCambio);
+
+        if (isMobile) {
+          // En móvil, mostrar solo USD
+          return (
+            <Typography variant="body2" fontWeight="500" sx={{ fontSize: '0.875rem' }}>
+              ${costoUSD.toLocaleString()}
+            </Typography>
+          );
+        }
+
+        // En tablet/desktop, formato apilado con números completos
         return (
-          <Typography variant="body2" fontWeight="500" color="text.primary">
-            ${costo.toFixed(2)} USD
-          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            <Typography variant="body2" sx={{ fontSize: '0.875rem', lineHeight: 1.2, fontWeight: 500 }}>
+              {costoMN.toLocaleString()} MN
+            </Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.875rem', lineHeight: 1.2, fontWeight: 500 }}>
+              ${costoUSD.toLocaleString()} USD
+            </Typography>
+          </Box>
         );
       },
-      renderEditCell: (params) => (
-        <Box display="flex" gap={1} alignItems="center">
-          <TextField
-            size="small"
-            label="USD"
-            type="number"
-            defaultValue={params.row.inversion_USD}
-            onChange={(e) => {
-              const newValue = e.target.value;
-              setEditingChanges(prev => ({
-                ...prev,
-                [params.id]: {
-                  ...prev[params.id],
-                  ...params.row,
-                  inversion_USD: newValue,
-                  inversion: `${params.row.inversion_MN || 0} MN - ${newValue} USD`
-                }
-              }));
-            }}
-            variant="outlined"
-            sx={{ width: '120px' }}
-          />
-        </Box>
-      )
+      renderEditCell: (params) => {
+        const currentChanges = editingChanges[params.id] || {};
+        const currentCostMN = currentChanges.inversion_MN || (params.row.cost * tasaCambio).toFixed(2);
+        const currentCostUSD = currentChanges.inversion_USD || params.row.cost || 0;
+
+        return (
+          <Box
+            display="flex"
+            gap={isMobile ? 0.5 : 1}
+            alignItems="center"
+            flexDirection={isMobile ? 'column' : 'row'}
+            sx={{ width: '100%' }}
+          >
+            <TextField
+              size="small"
+              label="MN"
+              type="number"
+              key={`cost-mn-${params.id}-${currentCostMN}`} // Force re-render
+              defaultValue={currentCostMN}
+              onBlur={(e) => {
+                const newValueMN = parseFloat(e.target.value) || 0;
+                const calculatedUSD = parseFloat((newValueMN / tasaCambio).toFixed(2));
+                setEditingChanges(prev => ({
+                  ...prev,
+                  [params.id]: {
+                    ...prev[params.id],
+                    // Solo actualizar campos relacionados con Costo
+                    inversion_MN: newValueMN,
+                    inversion_USD: calculatedUSD,
+                    cost: calculatedUSD,  // Para el backend
+                    costo: `${newValueMN} MN - ${calculatedUSD} USD`
+                  }
+                }));
+              }}
+              variant="outlined"
+              sx={{ width: isMobile ? '100%' : '80px' }}
+            />
+            <TextField
+              size="small"
+              label="USD"
+              type="number"
+              key={`cost-usd-${params.id}-${currentCostUSD}`} // Force re-render
+              defaultValue={currentCostUSD}
+              onBlur={(e) => {
+                const newValueUSD = parseFloat(e.target.value) || 0;
+                const calculatedMN = parseFloat((newValueUSD * tasaCambio).toFixed(2));
+                setEditingChanges(prev => ({
+                  ...prev,
+                  [params.id]: {
+                    ...prev[params.id],
+                    // Solo actualizar campos relacionados con Costo
+                    inversion_USD: newValueUSD,
+                    inversion_MN: calculatedMN,
+                    cost: newValueUSD,  // Para el backend
+                    costo: `${calculatedMN} MN - ${newValueUSD} USD`
+                  }
+                }));
+              }}
+              variant="outlined"
+              sx={{ width: isMobile ? '100%' : '80px' }}
+            />
+          </Box>
+        );
+      }
     },
     {
       field: 'sales',
       headerName: 'Sales',
-      width: isMobile ? 60 : 100,
+      width: getColumnWidth(60, 80, 100, 120),
       editable: false,
-      hide: isMobile, // Ocultar en móvil
+      hide: shouldHideColumn('sales'),
       renderCell: (params) => (
         <Typography variant="body2" fontWeight="500" textAlign="center">
           {/* TODO: Conectar con tabla sales para contar ventas por ID */}
@@ -658,12 +804,39 @@ function ListItems({ items, username }) {
     },
     {
       field: 'inversion',
-      headerName: 'Inversion Total',
-      width: isMobile ? 120 : 200,
-      editable: true,
-      hide: isMobile, // Ocultar en móvil
+      headerName: 'Inversión',  // Nombre más corto
+      width: getColumnWidth(100, 120, 140, 160), // Aumentado para números completos
+      editable: false, // Cambiado a false - campo calculado automáticamente
+      hide: shouldHideColumn('inversion'),
       renderCell: (params) => {
-        return <span>{params.value}</span>;
+        // FÓRMULA CORRECTA: Inversión Total = costo * cantidad (SIN tax)
+        const changes = editingChanges[params.id] || {};
+        const currentCost = parseFloat(changes.cost || changes.inversion_USD || params.row.cost) || 0;
+        const currentCant = parseFloat(changes.cant || params.row.cant) || 0;
+
+        const inversionTotalUSD = (currentCost * currentCant);
+        const inversionTotalMN = (currentCost * currentCant * tasaCambio);
+
+        if (isMobile) {
+          // En móvil, mostrar solo USD
+          return (
+            <Typography variant="body2" fontWeight="500" sx={{ fontSize: '0.875rem' }}>
+              ${inversionTotalUSD.toFixed(0)}
+            </Typography>
+          );
+        }
+
+        // Formato compacto para tablet/desktop con números completos
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            <Typography variant="body2" sx={{ fontSize: '0.875rem', lineHeight: 1.2, fontWeight: 500 }}>
+              {inversionTotalMN.toLocaleString()} MN
+            </Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.875rem', lineHeight: 1.2, fontWeight: 500 }}>
+              ${inversionTotalUSD.toLocaleString()} USD
+            </Typography>
+          </Box>
+        );
       },
       renderEditCell: (params) => {
         return (
@@ -714,12 +887,69 @@ function ListItems({ items, username }) {
     },
     {
       field: 'revenue',
-      headerName: 'Ganancias Total',
-      width: isMobile ? 120 : 200,
-      editable: true,
-      hide: isMobile, // Ocultar en móvil
+      headerName: 'Ganancia', // Nombre más corto
+      width: getColumnWidth(100, 120, 140, 160), // Aumentado para números completos
+      editable: false, // Cambiado a false - campo calculado automáticamente
+      hide: shouldHideColumn('revenue'),
       renderCell: (params) => {
-        return <span>{params.value}</span>;
+        // FÓRMULA CORRECTA: Ganancias Total = price * cantidad - inversión_total
+        const changes = editingChanges[params.id] || {};
+        const currentPriceMN = parseFloat(changes.price_MN || changes.price || params.row.price_MN || params.row.price) || 0;
+        const currentPriceUSD = parseFloat(changes.price_USD || params.row.price_USD) || 0;
+        const currentCost = parseFloat(changes.cost || changes.inversion_USD || params.row.cost) || 0;
+        const currentCant = parseFloat(changes.cant || params.row.cant) || 0;
+
+        // Inversión Total = costo * cantidad
+        const inversionTotalUSD = currentCost * currentCant;
+        const inversionTotalMN = currentCost * currentCant * tasaCambio;
+
+        // Ganancias Total = price * cantidad - inversión_total
+        const gananciaTotalMN = (currentPriceMN * currentCant) - inversionTotalMN;
+        const gananciaTotalUSD = (currentPriceUSD * currentCant) - inversionTotalUSD;
+
+        const isPositive = gananciaTotalMN >= 0;
+
+        if (isMobile) {
+          // En móvil, mostrar solo indicador +/- con valor USD
+          return (
+            <Typography
+              variant="body2"
+              fontWeight="500"
+              color={isPositive ? "success.main" : "error.main"}
+              sx={{ fontSize: '0.875rem' }}
+            >
+              {isPositive ? '+' : '-'}${Math.abs(gananciaTotalUSD).toLocaleString()}
+            </Typography>
+          );
+        }
+
+        // Formato compacto para tablet/desktop con números completos
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            <Typography
+              variant="body2"
+              sx={{
+                fontSize: '0.875rem',
+                lineHeight: 1.2,
+                color: isPositive ? "success.main" : "error.main",
+                fontWeight: 500
+              }}
+            >
+              {isPositive ? '+' : '-'}{Math.abs(gananciaTotalMN).toLocaleString()} MN
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                fontSize: '0.875rem',
+                color: isPositive ? "success.dark" : "error.dark",
+                lineHeight: 1.2,
+                fontWeight: 500
+              }}
+            >
+              ${Math.abs(gananciaTotalUSD).toLocaleString()} USD
+            </Typography>
+          </Box>
+        );
       },
       renderEditCell: (params) => {
         const currentChanges = editingChanges[params.id] || {};
@@ -768,7 +998,7 @@ function ListItems({ items, username }) {
     {
       field: 'detalles',
       headerName: 'Detalles',
-      width: isMobile ? 100 : 120, // Más ancho
+      width: getColumnWidth(80, 100, 120, 140),
       editable: false,
       sortable: false,
       renderCell: (params) => {
@@ -820,7 +1050,7 @@ function ListItems({ items, username }) {
       field: 'actions',
       type: 'actions',
       headerName: isMobile ? '' : 'Acciones',
-      width: isMobile ? 100 : 100, // Más ancho en móvil
+      width: getColumnWidth(60, 70, 80, 90), // Reducido significativamente
       cellClassName: 'actions',
       getActions: ({ id }) => {
         const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit || cellEditingRows.has(id);
@@ -863,10 +1093,55 @@ function ListItems({ items, username }) {
       },
     },
   ];
-  const totalMN = items.length > 0 ? Math.round((items.reduce((acc, item) => acc + (item.price * item.cant), 0))) : 0;
-  const totalUSD = items.length > 0 ? Math.round((items.reduce((acc, item) => acc + Math.round((item.price * item.cant) / tasaCambio), 0))) : 0;
-  const totalInversion = items.length > 0 ? Math.round((items.reduce((acc, item) => acc + (item.cost + item.tax) * tasaCambio * item.cant, 0))) : 0;
-  const totalGanancias = items.length > 0 ? Math.round((items.reduce((acc, item) => acc + (item.price * item.cant) - (((item.cost * item.cant * tasaCambio) + (item.tax * item.cant * tasaCambio))), 0))) : 0;
+
+  // Crear array combinado con cambios aplicados para cálculos precisos
+  const rowsWithChanges = orows.map(row => {
+    const changes = editingChanges[row.id];
+    if (changes) {
+      return {
+        ...row,
+        ...changes,
+        // Asegurar que price y cost estén actualizados para los cálculos
+        price: changes.price || changes.price_MN || row.price,
+        cost: changes.cost || changes.inversion_USD || row.cost
+      };
+    }
+    return row;
+  });
+
+  // FÓRMULAS CORREGIDAS SEGÚN ESPECIFICACIÓN:
+  // 1. Inversiones = suma de todas las inversiones individuales (costo * cantidad de cada producto)
+  // 2. Ganancias = suma de sales * price de cada producto (ventas reales)
+  // 3. Ganancias Proximadas = suma de todas las ganancias totales individuales (price * cantidad - inversión_total)
+
+  const totalInversiones = rowsWithChanges.length > 0 ?
+    rowsWithChanges.reduce((acc, item) => {
+      const cost = parseFloat(item.cost) || 0;
+      const cant = parseFloat(item.cant) || 0;
+      return acc + (cost * cant); // Inversión individual = costo * cantidad
+    }, 0) : 0;
+
+  // TODO: Conectar con tabla sales para obtener ventas reales
+  const totalGananciasReales = 0; // Por ahora 0, necesita conectar con sales
+
+  const totalGananciasProximadas = rowsWithChanges.length > 0 ?
+    rowsWithChanges.reduce((acc, item) => {
+      const priceMN = parseFloat(item.price) || 0;  // Price en MN
+      const priceUSD = parseFloat(item.price_USD) || 0;  // Price en USD
+      const cost = parseFloat(item.cost) || 0;  // Costo en USD
+      const cant = parseFloat(item.cant) || 0;
+
+      // Inversión Total en USD = costo * cantidad
+      const inversionTotalUSD = cost * cant;
+
+      // Para los totales, trabajar en USD para consistencia
+      // Ganancia Total en USD = price_USD * cantidad - inversión_total_USD
+      const gananciaTotalUSD = (priceUSD * cant) - inversionTotalUSD;
+
+      return acc + gananciaTotalUSD;
+    }, 0) : 0;  // Mantener los totales MN y USD para compatibilidad
+  const totalMN = rowsWithChanges.length > 0 ? Math.round((rowsWithChanges.reduce((acc, item) => acc + (parseFloat(item.price) * parseFloat(item.cant)), 0))) : 0;
+  const totalUSD = rowsWithChanges.length > 0 ? Math.round((rowsWithChanges.reduce((acc, item) => acc + Math.round((parseFloat(item.price) * parseFloat(item.cant)) / tasaCambio), 0))) : 0;
 
   const handleCloseSnackbar = () => setSnackbar(null);
 
@@ -902,8 +1177,9 @@ function ListItems({ items, username }) {
   useEffect(() => {
     localStorage.setItem('totalMN', totalMN);
     localStorage.setItem('totalUSD', totalUSD);
-    localStorage.setItem('totalGanancias', totalGanancias);
-    localStorage.setItem('totalInversion', totalInversion);
+    localStorage.setItem('totalInversiones', totalInversiones);
+    localStorage.setItem('totalGananciasReales', totalGananciasReales);
+    localStorage.setItem('totalGananciasProximadas', totalGananciasProximadas);
 
     // Debug: verificar si los items incluyen detalles
     console.log('🔍 ListItems useEffect - items recibidos:', items);
@@ -1123,8 +1399,8 @@ function ListItems({ items, username }) {
         name: currentRow.name || baseRow.name || '',
         cant: parseInt(currentRow.cant || baseRow.cant) || 0,
         detalles: currentRow.detalles !== undefined ? currentRow.detalles : (baseRow.detalles || ''),
-        cost: parseFloat(currentRow.cost || baseRow.cost) || 0,
-        price: parseFloat(currentRow.price_MN || currentRow.price || baseRow.price) || 0,
+        cost: parseFloat(currentRow.cost || baseRow.cost) || 0,  // Usar cost directo, no inversion_USD
+        price: parseFloat(currentRow.price || currentRow.price_MN || baseRow.price) || 0,
         price_USD: parseFloat(currentRow.price_USD || baseRow.price_USD) || 0,
         tax: parseFloat(currentRow.tax || baseRow.tax) || 0,
         category: currentRow.category !== undefined ? currentRow.category : (baseRow.category || ''),
@@ -1540,14 +1816,25 @@ function ListItems({ items, username }) {
       <div>
         <Paper sx={{
           height: {
-            xs: 'calc(100vh - 180px)', // Móvil: un poco más alto
-            sm: 'calc(100vh - 200px)', // Tablet: altura cómoda
-            md: '500px' // Desktop: altura fija
+            xs: 'calc(100vh - 140px)', // Móvil: más compacto
+            sm: 'calc(100vh - 160px)', // Tablet: más compacto  
+            md: 'calc(100vh - 180px)', // Desktop: más compacto
+            lg: '550px', // Pantallas grandes: altura moderada
+            xl: '600px' // Pantallas extra grandes: altura moderada
           },
           width: '100%',
           overflow: 'hidden',
           mx: { xs: 0, sm: 'auto' },
-          maxWidth: '100vw'
+          maxWidth: '100vw',
+          // Responsive borders and shadows
+          borderRadius: { xs: 0, sm: 1, md: 2 },
+          boxShadow: {
+            xs: 'none',
+            sm: '0 2px 4px rgba(0,0,0,0.1)',
+            md: '0 4px 8px rgba(0,0,0,0.12)'
+          },
+          // Responsive margins - más compactos
+          margin: { xs: 0, sm: 0.5, md: 1 },
         }}>
           <ThemeProvider theme={inventoryTheme}>
             <DataGrid
@@ -1557,6 +1844,44 @@ function ListItems({ items, username }) {
               editMode="row"
               rowModesModel={rowModesModel}
               onRowModesModelChange={setRowModesModel}
+
+              // Configuración responsive
+              columnBuffer={isMobile ? 2 : 5}
+              columnThreshold={isMobile ? 2 : 5}
+              rowHeight={isMobile ? 60 : isTablet ? 65 : 70}
+              headerHeight={isMobile ? 48 : 56}
+
+              // Paginación responsive
+              initialState={{
+                pagination: {
+                  paginationModel: {
+                    pageSize: isMobile ? 5 : isTablet ? 8 : 10,
+                  },
+                },
+              }}
+              pageSizeOptions={isMobile ? [5, 10] : isTablet ? [5, 8, 15] : [5, 10, 15, 25]}
+
+              // Scroll responsive
+              scrollbarSize={isMobile ? 8 : 12}
+
+              // Density responsive
+              density={isMobile ? 'compact' : isTablet ? 'standard' : 'comfortable'}
+
+              // Mejoras para dispositivos táctiles
+              disableColumnResize={isMobile}
+              disableColumnReorder={isMobile}
+              hideFooterSelectedRowCount={isMobile}
+
+              // Toolbar responsive
+              slots={{
+                toolbar: isMobile ? undefined : GridToolbar, // Ocultar toolbar en móvil para ahorrar espacio
+              }}
+              slotProps={{
+                toolbar: {
+                  showQuickFilter: !isMobile, // Ocultar búsqueda rápida en móvil
+                  quickFilterProps: { debounceMs: 500 },
+                },
+              }}
               onRowEditStart={(params) => {
                 // Cuando se inicia la edición de una fila, agregar la fila al set de edición
                 setCellEditingRows(prev => new Set([...prev, params.id]));
@@ -1605,8 +1930,6 @@ function ListItems({ items, username }) {
               onProcessRowUpdateError={(error) => {
                 console.log('Row update error:', error);
               }}
-              initialState={{ pagination: { paginationModel } }}
-              pageSizeOptions={[5, 10, 15]}
               checkboxSelection
               disableMultipleRowSelection={!deleteI ? true : false}
               onRowSelectionModelChange={(params) => { handleRowSelectionModelChange(params) }}
@@ -1619,21 +1942,49 @@ function ListItems({ items, username }) {
                 // Responsive adjustments
                 '& .MuiDataGrid-main': {
                   minWidth: 0, // Permite scroll horizontal
+                  overflow: 'auto',
                 },
                 '& .MuiDataGrid-virtualScroller': {
                   minWidth: 0,
+                  overflow: 'auto',
                 },
                 '& .MuiDataGrid-columnHeaders': {
-                  minHeight: { xs: '48px', sm: '56px' }, // Más alto en móvil
+                  minHeight: isMobile ? '48px' : '56px',
+                  '& .MuiDataGrid-columnHeader': {
+                    fontSize: isMobile ? '0.75rem' : '0.875rem',
+                    fontWeight: 600,
+                  }
                 },
                 '& .MuiDataGrid-cell': {
-                  padding: { xs: '8px 12px', sm: '0 16px' }, // Más padding en móvil
-                  fontSize: { xs: '0.875rem', sm: '0.875rem' }, // Mismo tamaño de fuente
+                  padding: isMobile ? '4px 8px' : isTablet ? '6px 12px' : '8px 16px',
+                  fontSize: isMobile ? '0.75rem' : isTablet ? '0.8rem' : '0.875rem',
+                  display: 'flex',
+                  alignItems: 'center',
                 },
                 '& .MuiDataGrid-row': {
-                  minHeight: { xs: '52px', sm: '52px' }, // Filas más altas en móvil
+                  minHeight: isMobile ? '60px' : isTablet ? '65px' : '70px',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  }
                 },
-                // Mejor scroll en móvil
+                // Mejorar scroll en dispositivos táctiles
+                '& .MuiDataGrid-virtualScrollerContent': {
+                  overflowX: 'auto',
+                  WebkitOverflowScrolling: 'touch',
+                },
+                // Responsive toolbar
+                '& .MuiDataGrid-toolbarContainer': {
+                  padding: isMobile ? '8px' : '12px 16px',
+                  flexDirection: isMobile ? 'column' : 'row',
+                  gap: isMobile ? 1 : 2,
+                },
+                // Footer responsive
+                '& .MuiDataGrid-footerContainer': {
+                  minHeight: isMobile ? '48px' : '52px',
+                  '& .MuiTablePagination-root': {
+                    fontSize: isMobile ? '0.75rem' : '0.875rem',
+                  }
+                },
                 overflowX: 'auto',
                 '&::-webkit-scrollbar': {
                   height: '8px',
@@ -1648,13 +1999,6 @@ function ListItems({ items, username }) {
               }}
               disableRowSelectionOnClick
               checkboxSelectionVisibleOnly
-              slots={{ toolbar: GridToolbar }}
-              slotProps={{
-                toolbar: {
-                  showQuickFilter: true,
-                  quickFilterProps: { debounceMs: 500 },
-                },
-              }}
             />
           </ThemeProvider>
         </Paper>
@@ -1778,8 +2122,8 @@ function ListItems({ items, username }) {
                 </Avatar>
               </ListItemAvatar>
               <ListItemText
-                primary="Inversión Total General:"
-                secondary={`${(totalInversion).toFixed(2)} MN - ${(totalInversion / tasaCambio).toFixed(2)} USD`}
+                primary="Inversiones (Suma de costo * cantidad):"
+                secondary={`${(totalInversiones * tasaCambio).toFixed(2)} MN - ${totalInversiones.toFixed(2)} USD`}
                 sx={{
                   '& .MuiListItemText-primary': { color: 'error.main' },
                   '& .MuiListItemText-secondary': { color: 'error.main' }
@@ -1788,16 +2132,31 @@ function ListItems({ items, username }) {
             </ListItem>
             <ListItem>
               <ListItemAvatar>
-                <Avatar sx={{ background: 'Green' }}>
+                <Avatar sx={{ background: 'blue' }}>
                   <AttachMoneyIcon />
                 </Avatar>
               </ListItemAvatar>
               <ListItemText
-                primary="Ganancias General Totales:"
-                secondary={`${totalGanancias.toFixed(2)} MN - ${(totalGanancias / tasaCambio).toFixed(2)} USD`}
+                primary="Ganancias (Ventas reales):"
+                secondary={`${(totalGananciasReales * tasaCambio).toFixed(2)} MN - ${totalGananciasReales.toFixed(2)} USD`}
                 sx={{
-                  '& .MuiListItemText-primary': { color: totalGanancias >= 0 ? 'success.main' : 'error.main' },
-                  '& .MuiListItemText-secondary': { color: totalGanancias >= 0 ? 'success.main' : 'error.main' }
+                  '& .MuiListItemText-primary': { color: totalGananciasReales >= 0 ? 'success.main' : 'error.main' },
+                  '& .MuiListItemText-secondary': { color: totalGananciasReales >= 0 ? 'success.main' : 'error.main' }
+                }}
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemAvatar>
+                <Avatar sx={{ background: 'Green' }}>
+                  <TrendingUpIcon />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText
+                primary="Ganancias Proximadas (Si vendes todo):"
+                secondary={`${(totalGananciasProximadas * tasaCambio).toFixed(2)} MN - ${totalGananciasProximadas.toFixed(2)} USD`}
+                sx={{
+                  '& .MuiListItemText-primary': { color: totalGananciasProximadas >= 0 ? 'success.main' : 'error.main' },
+                  '& .MuiListItemText-secondary': { color: totalGananciasProximadas >= 0 ? 'success.main' : 'error.main' }
                 }}
               />
             </ListItem>
@@ -1818,17 +2177,27 @@ function ListItems({ items, username }) {
             </Avatar>
             <Typography variant="body2" sx={{ color: '#666', fontSize: isMobile ? '0.875rem' : 'inherit' }}>
               Inversiones: <span style={{ color: '#f44336', fontWeight: 600 }}>
-                {isMobile ? `$${(totalInversion / tasaCambio).toFixed(0)}` : `${(totalInversion).toFixed(2)} MN - ${(totalInversion / tasaCambio).toFixed(2)} USD`}
+                {isMobile ? `$${totalInversiones.toFixed(0)}` : `${(totalInversiones * tasaCambio).toFixed(2)} MN - ${totalInversiones.toFixed(2)} USD`}
               </span>
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: isMobile ? 'space-between' : 'flex-start' }}>
-            <Avatar sx={{ background: 'green', width: isMobile ? 24 : 24, height: isMobile ? 24 : 24 }}> {/* Tamaño normal */}
-              <AttachMoneyIcon sx={{ fontSize: isMobile ? 14 : 14 }} /> {/* Tamaño normal */}
+            <Avatar sx={{ background: 'blue', width: isMobile ? 20 : 24, height: isMobile ? 20 : 24 }}>
+              <AttachMoneyIcon sx={{ fontSize: isMobile ? 12 : 14 }} />
             </Avatar>
             <Typography variant="body2" sx={{ color: '#666', fontSize: isMobile ? '0.875rem' : 'inherit' }}>
-              Ganancias: <span style={{ color: totalGanancias >= 0 ? '#4caf50' : '#f44336', fontWeight: 600 }}>
-                {isMobile ? `$${(totalGanancias / tasaCambio).toFixed(0)}` : `${totalGanancias.toFixed(2)} MN - ${(totalGanancias / tasaCambio).toFixed(2)} USD`}
+              Ganancias Reales: <span style={{ color: totalGananciasReales >= 0 ? '#4caf50' : '#f44336', fontWeight: 600 }}>
+                {isMobile ? `$${totalGananciasReales.toFixed(0)}` : `${(totalGananciasReales * tasaCambio).toFixed(2)} MN - ${totalGananciasReales.toFixed(2)} USD`}
+              </span>
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: isMobile ? 'space-between' : 'flex-start' }}>
+            <Avatar sx={{ background: 'green', width: isMobile ? 24 : 24, height: isMobile ? 24 : 24 }}>
+              <TrendingUpIcon sx={{ fontSize: isMobile ? 14 : 14 }} />
+            </Avatar>
+            <Typography variant="body2" sx={{ color: '#666', fontSize: isMobile ? '0.875rem' : 'inherit' }}>
+              Gan. Proximadas: <span style={{ color: totalGananciasProximadas >= 0 ? '#4caf50' : '#f44336', fontWeight: 600 }}>
+                {isMobile ? `$${(totalGananciasProximadas / tasaCambio).toFixed(0)}` : `${(totalGananciasProximadas * tasaCambio).toFixed(2)} MN - ${totalGananciasProximadas.toFixed(2)} USD`}
               </span>
             </Typography>
           </Box>

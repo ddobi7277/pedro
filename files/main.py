@@ -509,7 +509,11 @@ async def add_images_to_item(
 
 @app.put("/edit/item/{item_id}")
 async def edit_users(item_id,item:ItemEdit,current_user:User= Depends(get_current_user),db:Session= Depends(get_db)):
-    current_item = await get_item_by_id(item_id=item_id,db= db)
+    # Usar consulta directa sin process_item_images para evitar modificaciones no deseadas
+    current_item = db.query(Item).filter(Item.id == item_id).first()
+    if not current_item:
+        raise HTTPException(status_code=404, detail="Item not found")
+        
     if current_user:
         if (current_item.seller == current_user.username):
             print('Item in /edit/item',item)
