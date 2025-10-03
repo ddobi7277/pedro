@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import jwt
+from jwt import InvalidTokenError
 import json
 from database import SessionLocal
 # from jwt.exceptions import InvalidTokenError  # This import may not be needed
@@ -280,17 +281,25 @@ async def authenticate_user(db:Session , username: str, password: str):
 
 
 async def create_access_token(user_data: dict, expires_delta: timedelta | None = None):
+    print(f"[TOKEN] Creating token with user_data: {user_data}")
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=15)
         
+    username = user_data.get('username') if isinstance(user_data, dict) else user_data
+    is_admin = user_data.get('is_admin', False) if isinstance(user_data, dict) else False
+    
+    print(f"[TOKEN] Extracted username: {repr(username)}, is_admin: {is_admin}")
+        
     payload = {
-        'sub': user_data.get('username') if isinstance(user_data, dict) else user_data,
-        'is_admin': user_data.get('is_admin', False) if isinstance(user_data, dict) else False,
+        'sub': username,
+        'is_admin': is_admin,
         'exp': expire
     }
+    print(f"[TOKEN] Final payload: {payload}")
     encoded_jwt = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    print(f"[TOKEN] Encoded JWT created successfully")
     return encoded_jwt
 
 
@@ -301,13 +310,18 @@ async def get_current_user(db:Session= Depends(get_db), token: str= Depends(oaut
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
+        print(f"[TOKEN] Decoding token: {token[:50]}...")
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        print(f"[TOKEN] Token payload: {payload}")
         username:str= payload.get('sub')
-        print(username)
+        print(f"[TOKEN] Extracted username from token: {username}")
         user=await get_user_by_username(db,username)
+        print(f"[TOKEN] Found user from DB: {user.username if user else 'None'}")
         if user is None:
+            print("[TOKEN] User not found in database")
             raise credentials_exception 
-    except (jwt.InvalidTokenError, Exception):
+    except (InvalidTokenError, Exception) as e:
+        print(f"[TOKEN] Token validation error: {e}")
         raise credentials_exception
     #user_ob= UserCreate.model_validate(user)
     if user:

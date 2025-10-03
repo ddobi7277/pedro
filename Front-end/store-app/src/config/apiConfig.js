@@ -30,7 +30,7 @@ class ApiConfig {
     // Verificar si el usuario actual es admin
     isUserAdmin() {
         try {
-            const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+            const token = localStorage.getItem('token');
             if (!token) return false;
 
             // Verificar por username almacenado o token

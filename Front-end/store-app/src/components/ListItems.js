@@ -252,7 +252,7 @@ function ListItems({ items, username }) {
       const response = await fetch(`http://localhost:8000/items/${selectedItem.id}/add-images`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: formData
       });
@@ -297,7 +297,7 @@ function ListItems({ items, username }) {
       const response = await fetch(`http://localhost:8000/items/${selectedItem.id}/delete-image`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: formData
       });
@@ -2529,7 +2529,7 @@ function ListItems({ items, username }) {
                     const response = await fetch(`http://localhost:8000/items/${selectedItem.id}/add-images`, {
                       method: 'POST',
                       headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                       },
                       body: formData
                     });

@@ -181,17 +181,24 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db), current
 
 @app.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm= Depends() , db:Session= Depends(get_db)):
+    print(f"[LOGIN] Login attempt for username: {form_data.username}")
     user= await authenticate_user(db, form_data.username,form_data.password)
     if not user:
+        print(f"[LOGIN] Authentication failed for username: {form_data.username}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers= {"WWW-Authenticate":"Bearer"}
             )
+    
+    print(f"[LOGIN] User authenticated: {user.username}, ID: {user.id}")
+    print(f"[LOGIN] User object attributes: username={user.username}, full_name={user.full_name}, is_admin={user.is_admin}")
+    
     access_token_expires = timedelta(minutes= ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token=await create_access_token(
-        user_data={"sub": user.username}, expires_delta=access_token_expires
+        user_data={"username": user.username, "is_admin": user.is_admin}, expires_delta=access_token_expires
     )    
+    print(f"[LOGIN] Token created for user: {user.username}")
     return {"access_token":access_token, "token_type":"bearer"}
 
 

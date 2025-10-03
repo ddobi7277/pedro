@@ -117,12 +117,42 @@ export default function Login(props) {
         const data = await response.json();
 
         if (response.ok) {
-          logSuccess('Login successful', { username, hasToken: !!data.access_token });
-          localStorage.setItem('access_token', data.access_token);
-          localStorage.setItem('token', data.access_token); // Guardar también como 'token' para compatibilidad
-          localStorage.setItem('username', username); // Guardar username para verificaciones
-          logNav('Redirecting to dashboard');
-          navigate('/dashboard');
+          // Debug: Log the entire response data
+          console.log('🔍 [LOGIN DEBUG] Full response data:', data);
+          console.log('🔍 [LOGIN DEBUG] Access token:', data.access_token);
+          console.log('🔍 [LOGIN DEBUG] Token (alternate):', data.token);
+          console.log('🔍 [LOGIN DEBUG] All data keys:', Object.keys(data));
+
+          // Obtener el token, manejando ambos casos
+          const token = data.access_token || data.token;
+          console.log('🔍 [LOGIN DEBUG] Final token to store:', token);
+          console.log('🔍 [LOGIN DEBUG] DATAAAAAAAAA:', data);
+          // Decodificar y mostrar el contenido del token
+          if (token) {
+            try {
+              console.log('🔍 [LOGIN DEBUG] Decoding token for payload inspection:', token);
+              const tokenParts = token.split('.');
+              console.log('🔍 [LOGIN DEBUG] Token parts:', tokenParts);
+              const payload = JSON.parse(atob(tokenParts[1]));
+              console.log('🔍 [LOGIN DEBUG] Token payload:', payload);
+            } catch (e) {
+              console.log('🔍 [LOGIN DEBUG] Could not decode token:', e);
+            }
+          } else {
+            console.log('🔍 [LOGIN DEBUG] NO TOKEN FOUND in response!');
+          }
+
+          if (token) {
+            logSuccess('Login successful', { username, hasToken: true });
+            localStorage.setItem('token', token); // Usar solo 'token' como estándar
+            localStorage.setItem('username', username); // Guardar username para verificaciones
+            logNav('Redirecting to dashboard');
+            navigate('/dashboard');
+          } else {
+            console.error('🔍 [LOGIN ERROR] No token received in response');
+            setErrorSms('Error: No se recibió token de autenticación');
+            setOpen(true);
+          }
         } else {
           logAuth('Login failed - Invalid credentials', { username, status: response.status });
           setErrorSms(data.detail || 'Credenciales inválidas. Por favor, inténtelo de nuevo.');
