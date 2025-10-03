@@ -198,6 +198,16 @@ function ListItems({ items, username }) {
   const [orows, setRows] = useState([]);
   const [open, setOpen] = React.useState(false);
 
+  // Estado para el acordeón de columnas en móvil
+  const [expandedColumn, setExpandedColumn] = useState(null);
+
+  // Función para manejar el clic en headers de columnas (solo móvil)
+  const handleColumnHeaderClick = (fieldName) => {
+    if (isMobile) {
+      setExpandedColumn(prev => prev === fieldName ? null : fieldName);
+    }
+  };
+
   // Estados para edición en línea
   const [rowModesModel, setRowModesModel] = useState({});
   const [snackbar, setSnackbar] = React.useState(null);
@@ -382,9 +392,17 @@ function ListItems({ items, username }) {
   }
 
   // Función helper para calcular anchos responsive (optimizados para evitar scroll)
-  const getColumnWidth = (mobileWidth, tabletWidth, laptopWidth, desktopWidth = laptopWidth) => {
-    // Reducir significativamente los anchos para móvil para evitar scroll horizontal
-    if (isMobile) return mobileWidth * 0.6; // Más agresivo para móvil
+  const getColumnWidth = (mobileWidth, tabletWidth, laptopWidth, desktopWidth = laptopWidth, fieldName) => {
+    if (isMobile) {
+      // Sistema de acordeón para móvil
+      if (expandedColumn === fieldName) {
+        return mobileWidth * 2; // Columna expandida es más ancha
+      } else if (expandedColumn && expandedColumn !== fieldName) {
+        return mobileWidth * 0.3; // Columnas colapsadas son más estrechas
+      } else {
+        return mobileWidth * 0.6; // Estado normal
+      }
+    }
     if (isTablet) return tabletWidth * 0.85;
     if (isSmallLaptop) return laptopWidth * 0.95;
     return isLargeLaptop ? desktopWidth : laptopWidth;
@@ -405,10 +423,25 @@ function ListItems({ items, username }) {
   const columns = [
     {
       field: 'name',
-      headerName: 'Product',
-      width: getColumnWidth(120, 160, 200, 250),
+      headerName: isMobile ? (expandedColumn === 'name' ? 'Product' : 'Prod') : 'Product',
+      width: getColumnWidth(120, 160, 200, 250, 'name'),
       editable: true,
-      flex: isMobile ? 1 : 0, // Usar flex en móvil para mejor responsividad
+      flex: isMobile ? 0 : 0, // Usar ancho fijo en móvil para acordeón
+      renderHeader: (params) => (
+        <Box
+          onClick={() => handleColumnHeaderClick('name')}
+          sx={{
+            cursor: isMobile ? 'pointer' : 'default',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            {isMobile ? (expandedColumn === 'name' ? 'Product' : 'Prod') : 'Product'}
+          </Typography>
+        </Box>
+      ),
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', padding: '8px 0' }}>
           <Typography
@@ -418,7 +451,7 @@ function ListItems({ items, username }) {
               fontSize: isMobile ? '0.75rem' : isTablet ? '0.8rem' : '0.875rem',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
+              whiteSpace: expandedColumn === 'name' && isMobile ? 'normal' : 'nowrap'
             }}
           >
             {params.value}
@@ -428,11 +461,26 @@ function ListItems({ items, username }) {
     },
     {
       field: 'firstImage',
-      headerName: 'Photo',
-      width: getColumnWidth(50, 70, 80, 90), // Más estrecho en móvil
+      headerName: isMobile ? (expandedColumn === 'firstImage' ? 'Photo' : 'Img') : 'Photo',
+      width: getColumnWidth(50, 70, 80, 90, 'firstImage'),
       editable: false,
       sortable: false,
       filterable: false,
+      renderHeader: (params) => (
+        <Box
+          onClick={() => handleColumnHeaderClick('firstImage')}
+          sx={{
+            cursor: isMobile ? 'pointer' : 'default',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            {isMobile ? (expandedColumn === 'firstImage' ? 'Photo' : 'Img') : 'Photo'}
+          </Typography>
+        </Box>
+      ),
       renderCell: (params) => (
         <Box
           sx={{
@@ -589,10 +637,25 @@ function ListItems({ items, username }) {
     },
     {
       field: 'cant',
-      headerName: 'Stock',
-      width: getColumnWidth(70, 80, 100, 120),
+      headerName: isMobile ? (expandedColumn === 'cant' ? 'Stock' : 'Stk') : 'Stock',
+      width: getColumnWidth(70, 80, 100, 120, 'cant'),
       editable: true,
       type: 'number',
+      renderHeader: (params) => (
+        <Box
+          onClick={() => handleColumnHeaderClick('cant')}
+          sx={{
+            cursor: isMobile ? 'pointer' : 'default',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            {isMobile ? (expandedColumn === 'cant' ? 'Stock' : 'Stk') : 'Stock'}
+          </Typography>
+        </Box>
+      ),
       renderCell: (params) => (
         <Typography
           variant="body2"
@@ -606,22 +669,50 @@ function ListItems({ items, username }) {
     },
     {
       field: 'precio',
-      headerName: 'Price',
-      width: getColumnWidth(100, 120, 150, 180), // Reducido significativamente
+      headerName: isMobile ? (expandedColumn === 'precio' ? 'Price' : 'Prc') : 'Price',
+      width: getColumnWidth(100, 120, 150, 180, 'precio'),
       editable: true,
-      flex: isMobile ? 0.8 : 0, // Flex más conservador
+      flex: isMobile ? 0 : 0, // Usar ancho fijo para acordeón
+      renderHeader: (params) => (
+        <Box
+          onClick={() => handleColumnHeaderClick('precio')}
+          sx={{
+            cursor: isMobile ? 'pointer' : 'default',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            {isMobile ? (expandedColumn === 'precio' ? 'Price' : 'Prc') : 'Price'}
+          </Typography>
+        </Box>
+      ),
       renderCell: (params) => {
-        // Formato más compacto para ahorrar espacio
         const priceMN = parseFloat(params.row.price_MN || params.row.price || 0);
         const priceUSD = parseFloat(params.row.price_USD || 0);
 
         if (isMobile) {
-          // En móvil, mostrar solo MN
-          return (
-            <Typography variant="body2" fontWeight="500" sx={{ fontSize: '0.875rem' }}>
-              {priceMN.toLocaleString()} MN
-            </Typography>
-          );
+          if (expandedColumn === 'precio') {
+            // Mostrar formato completo cuando está expandido
+            return (
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <Typography variant="body2" sx={{ fontSize: '0.75rem', lineHeight: 1.2, fontWeight: 500 }}>
+                  {priceMN.toLocaleString()} MN
+                </Typography>
+                <Typography variant="body2" sx={{ fontSize: '0.75rem', lineHeight: 1.2, color: 'text.secondary' }}>
+                  ${priceUSD.toFixed(2)} USD
+                </Typography>
+              </Box>
+            );
+          } else {
+            // Mostrar formato compacto cuando está colapsado
+            return (
+              <Typography variant="body2" fontWeight="500" sx={{ fontSize: '0.75rem' }}>
+                ${priceUSD.toFixed(0)}
+              </Typography>
+            );
+          }
         }
 
         // En tablet/desktop, formato compacto con números completos
@@ -1057,9 +1148,24 @@ function ListItems({ items, username }) {
     {
       field: 'actions',
       type: 'actions',
-      headerName: isMobile ? '' : 'Acciones',
-      width: getColumnWidth(45, 70, 80, 90), // Más estrecho en móvil
+      headerName: isMobile ? (expandedColumn === 'actions' ? 'Actions' : '') : 'Acciones',
+      width: getColumnWidth(45, 70, 80, 90, 'actions'),
       cellClassName: 'actions',
+      renderHeader: (params) => (
+        <Box
+          onClick={() => handleColumnHeaderClick('actions')}
+          sx={{
+            cursor: isMobile ? 'pointer' : 'default',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            {isMobile ? (expandedColumn === 'actions' ? 'Actions' : '⚙') : 'Acciones'}
+          </Typography>
+        </Box>
+      ),
       getActions: ({ id }) => {
         const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit || cellEditingRows.has(id);
 
@@ -1824,7 +1930,7 @@ function ListItems({ items, username }) {
       <div>
         <Paper sx={{
           height: {
-            xs: 'calc(100vh - 120px)', // Móvil: más espacio para contenido
+            xs: 'calc(100vh - 200px)', // Móvil: menos altura para mostrar totales
             sm: 'calc(100vh - 160px)', // Tablet: más compacto  
             md: 'calc(100vh - 180px)', // Desktop: más compacto
             lg: '550px', // Pantallas grandes: altura moderada
