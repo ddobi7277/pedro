@@ -618,7 +618,7 @@ function ListItems({ items, username }) {
       headerName: isMobile ? (expandedColumn === 'status' ? 'Status' : 'Sts') : 'Status',
       width: getColumnWidth(90, 100, 120, 140, 'status'),
       editable: false,
-      hide: shouldHideColumn('status'),
+      // hide: shouldHideColumn('status'), // Removido para mostrar en móvil
       renderHeader: (params) => (
         <Box
           onClick={() => handleColumnHeaderClick('status')}
@@ -737,10 +737,13 @@ function ListItems({ items, username }) {
               </Box>
             );
           } else {
-            // Mostrar formato compacto cuando está colapsado
+            // Mostrar formato compacto cuando está colapsado con indicador de continuación
+            const formattedValue = priceUSD % 1 === 0
+              ? `$${priceUSD.toFixed(0)}`
+              : `$${priceUSD.toFixed(1)}...`;
             return (
               <Typography variant="body2" fontWeight="500" sx={{ fontSize: '0.75rem' }}>
-                ${priceUSD.toFixed(0)}
+                {formattedValue}
               </Typography>
             );
           }
@@ -828,7 +831,7 @@ function ListItems({ items, username }) {
       headerName: isMobile ? (expandedColumn === 'costo' ? 'Costo' : 'Cst') : 'Costo',
       width: getColumnWidth(140, 160, 180, 200, 'costo'),
       editable: true,
-      hide: shouldHideColumn('costo'),
+      // hide: shouldHideColumn('costo'), // Removido para mostrar en móvil
       renderHeader: (params) => (
         <Box
           onClick={() => handleColumnHeaderClick('costo')}
@@ -862,10 +865,13 @@ function ListItems({ items, username }) {
               </Box>
             );
           } else {
-            // Mostrar formato compacto cuando está colapsado
+            // Mostrar formato compacto cuando está colapsado con indicador de continuación
+            const formattedValue = costoUSD % 1 === 0
+              ? `$${costoUSD.toFixed(0)}`
+              : `$${costoUSD.toFixed(1)}...`;
             return (
               <Typography variant="body2" fontWeight="500" sx={{ fontSize: '0.75rem' }}>
-                ${costoUSD.toFixed(0)}
+                {formattedValue}
               </Typography>
             );
           }
@@ -953,7 +959,7 @@ function ListItems({ items, username }) {
       headerName: isMobile ? (expandedColumn === 'sales' ? 'Sales' : 'Sls') : 'Sales',
       width: getColumnWidth(60, 80, 100, 120, 'sales'),
       editable: false,
-      hide: shouldHideColumn('sales'),
+      // hide: shouldHideColumn('sales'), // Removido para mostrar en móvil
       renderHeader: (params) => (
         <Box
           onClick={() => handleColumnHeaderClick('sales')}
@@ -981,7 +987,7 @@ function ListItems({ items, username }) {
       headerName: isMobile ? (expandedColumn === 'inversion' ? 'Inversión' : 'Inv') : 'Inversión',
       width: getColumnWidth(100, 120, 140, 160, 'inversion'),
       editable: false, // Cambiado a false - campo calculado automáticamente
-      hide: shouldHideColumn('inversion'),
+      // hide: shouldHideColumn('inversion'), // Removido para mostrar en móvil
       renderHeader: (params) => (
         <Box
           onClick={() => handleColumnHeaderClick('inversion')}
@@ -1007,12 +1013,29 @@ function ListItems({ items, username }) {
         const inversionTotalMN = (currentCost * currentCant * tasaCambio);
 
         if (isMobile) {
-          // En móvil, mostrar solo USD
-          return (
-            <Typography variant="body2" fontWeight="500" sx={{ fontSize: '0.875rem' }}>
-              ${inversionTotalUSD.toFixed(0)}
-            </Typography>
-          );
+          if (expandedColumn === 'inversion') {
+            // Mostrar formato completo cuando está expandido
+            return (
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <Typography variant="body2" sx={{ fontSize: '0.75rem', lineHeight: 1.2, fontWeight: 500 }}>
+                  {inversionTotalMN.toLocaleString()} MN
+                </Typography>
+                <Typography variant="body2" sx={{ fontSize: '0.75rem', lineHeight: 1.2, color: 'text.secondary' }}>
+                  ${inversionTotalUSD.toFixed(2)} USD
+                </Typography>
+              </Box>
+            );
+          } else {
+            // Mostrar formato compacto cuando está colapsado con indicador de continuación
+            const formattedValue = inversionTotalUSD % 1 === 0
+              ? `$${inversionTotalUSD.toFixed(0)}`
+              : `$${inversionTotalUSD.toFixed(1)}...`;
+            return (
+              <Typography variant="body2" fontWeight="500" sx={{ fontSize: '0.75rem' }}>
+                {formattedValue}
+              </Typography>
+            );
+          }
         }
 
         // Formato compacto para tablet/desktop con números completos
@@ -1079,7 +1102,7 @@ function ListItems({ items, username }) {
       headerName: isMobile ? (expandedColumn === 'revenue' ? 'Ganancia' : 'Gan') : 'Ganancia',
       width: getColumnWidth(100, 120, 140, 160, 'revenue'),
       editable: false, // Cambiado a false - campo calculado automáticamente
-      hide: shouldHideColumn('revenue'),
+      // hide: shouldHideColumn('revenue'), // Removido para mostrar en móvil
       renderHeader: (params) => (
         <Box
           onClick={() => handleColumnHeaderClick('revenue')}
@@ -1114,17 +1137,51 @@ function ListItems({ items, username }) {
         const isPositive = gananciaTotalMN >= 0;
 
         if (isMobile) {
-          // En móvil, mostrar solo indicador +/- con valor USD
-          return (
-            <Typography
-              variant="body2"
-              fontWeight="500"
-              color={isPositive ? "success.main" : "error.main"}
-              sx={{ fontSize: '0.875rem' }}
-            >
-              {isPositive ? '+' : '-'}${Math.abs(gananciaTotalUSD).toLocaleString()}
-            </Typography>
-          );
+          if (expandedColumn === 'revenue') {
+            // Mostrar formato completo cuando está expandido
+            return (
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontSize: '0.75rem',
+                    lineHeight: 1.2,
+                    color: isPositive ? "success.main" : "error.main",
+                    fontWeight: 500
+                  }}
+                >
+                  {isPositive ? '+' : '-'}{Math.abs(gananciaTotalMN).toLocaleString()} MN
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontSize: '0.75rem',
+                    lineHeight: 1.2,
+                    color: isPositive ? "success.main" : "error.main",
+                    fontWeight: 500
+                  }}
+                >
+                  {isPositive ? '+' : '-'}${Math.abs(gananciaTotalUSD).toFixed(2)} USD
+                </Typography>
+              </Box>
+            );
+          } else {
+            // Mostrar formato compacto cuando está colapsado con indicador de continuación
+            const absValue = Math.abs(gananciaTotalUSD);
+            const formattedValue = absValue % 1 === 0
+              ? `${isPositive ? '+' : '-'}$${absValue.toFixed(0)}`
+              : `${isPositive ? '+' : '-'}$${absValue.toFixed(1)}...`;
+            return (
+              <Typography
+                variant="body2"
+                fontWeight="500"
+                color={isPositive ? "success.main" : "error.main"}
+                sx={{ fontSize: '0.75rem' }}
+              >
+                {formattedValue}
+              </Typography>
+            );
+          }
         }
 
         // Formato compacto para tablet/desktop con números completos
@@ -2417,7 +2474,7 @@ function ListItems({ items, username }) {
             </Avatar>
             <Typography variant="body2" sx={{ color: '#666', fontSize: isMobile ? '0.875rem' : 'inherit' }}>
               Inversiones: <span style={{ color: '#f44336', fontWeight: 600 }}>
-                {isMobile ? `$${totalInversiones.toFixed(0)}` : `${(totalInversiones * tasaCambio).toFixed(2)} MN - ${totalInversiones.toFixed(2)} USD`}
+                {isMobile ? `${(totalInversiones * tasaCambio).toFixed(0)} MN - $${totalInversiones.toFixed(1)} USD` : `${(totalInversiones * tasaCambio).toFixed(2)} MN - ${totalInversiones.toFixed(2)} USD`}
               </span>
             </Typography>
           </Box>
@@ -2427,7 +2484,7 @@ function ListItems({ items, username }) {
             </Avatar>
             <Typography variant="body2" sx={{ color: '#666', fontSize: isMobile ? '0.875rem' : 'inherit' }}>
               Ganancias Reales: <span style={{ color: totalGananciasReales >= 0 ? '#4caf50' : '#f44336', fontWeight: 600 }}>
-                {isMobile ? `$${totalGananciasReales.toFixed(0)}` : `${(totalGananciasReales * tasaCambio).toFixed(2)} MN - ${totalGananciasReales.toFixed(2)} USD`}
+                {isMobile ? `${(totalGananciasReales * tasaCambio).toFixed(0)} MN - $${totalGananciasReales.toFixed(1)} USD` : `${(totalGananciasReales * tasaCambio).toFixed(2)} MN - ${totalGananciasReales.toFixed(2)} USD`}
               </span>
             </Typography>
           </Box>
@@ -2437,7 +2494,7 @@ function ListItems({ items, username }) {
             </Avatar>
             <Typography variant="body2" sx={{ color: '#666', fontSize: isMobile ? '0.875rem' : 'inherit' }}>
               Gan. Proximadas: <span style={{ color: totalGananciasProximadas >= 0 ? '#4caf50' : '#f44336', fontWeight: 600 }}>
-                {isMobile ? `$${totalGananciasProximadas.toFixed(0)}` : `${(totalGananciasProximadas * tasaCambio).toFixed(2)} MN - ${totalGananciasProximadas.toFixed(2)} USD`}
+                {isMobile ? `${(totalGananciasProximadas * tasaCambio).toFixed(0)} MN - $${totalGananciasProximadas.toFixed(1)} USD` : `${(totalGananciasProximadas * tasaCambio).toFixed(2)} MN - ${totalGananciasProximadas.toFixed(2)} USD`}
               </span>
             </Typography>
           </Box>
