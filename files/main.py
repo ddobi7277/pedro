@@ -173,6 +173,8 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
         return {
             "username": current_user.username,
             "full_name": current_user.full_name,
+            "email": current_user.email,
+            "store_name": current_user.store_name,
             "is_admin": current_user.is_admin,
             "id": current_user.id
         }
@@ -204,6 +206,8 @@ async def get_all_users_admin(current_user: User = Depends(get_current_user), db
             "id": user.id,
             "username": user.username,
             "full_name": user.full_name,
+            "email": user.email,
+            "store_name": user.store_name,
             "is_admin": user.is_admin
         })
     return {"users": users_data}
@@ -225,6 +229,8 @@ async def get_user_by_id_admin(user_id: str, current_user: User = Depends(get_cu
         "id": user.id,
         "username": user.username,
         "full_name": user.full_name,
+        "email": user.email,
+        "store_name": user.store_name,
         "is_admin": user.is_admin
     }
 
@@ -268,6 +274,8 @@ async def update_user_admin(user_id: str, user_update: UserUpdate, current_user:
         "id": updated_user.id,
         "username": updated_user.username,
         "full_name": updated_user.full_name,
+        "email": updated_user.email,
+        "store_name": updated_user.store_name,
         "is_admin": updated_user.is_admin
     }
 

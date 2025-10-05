@@ -36,6 +36,8 @@ class UserCreate(BaseModel):
     #model_config = ConfigDict(from_attributes=True)
     username:str
     full_name: str
+    email: str | None = None  # Nuevo campo para email
+    store_name: str | None = None  # Nuevo campo para nombre de tienda
     hashed_password: str
     is_admin: bool = False
 
@@ -44,11 +46,15 @@ class UserRead(BaseModel):
     id: str
     username: str
     full_name: str
+    email: str | None = None  # Nuevo campo para email
+    store_name: str | None = None  # Nuevo campo para nombre de tienda
     is_admin: bool
 
 class UserUpdate(BaseModel):
     username: str | None = None
     full_name: str | None = None
+    email: str | None = None  # Nuevo campo para email
+    store_name: str | None = None  # Nuevo campo para nombre de tienda
     is_admin: bool | None = None
     
 class SaleCreate(BaseModel):

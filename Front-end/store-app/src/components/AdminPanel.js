@@ -55,6 +55,8 @@ export default function AdminPanel() {
     const [formData, setFormData] = useState({
         username: '',
         full_name: '',
+        email: '',
+        store_name: '',
         is_admin: false
     });
 
@@ -190,6 +192,8 @@ export default function AdminPanel() {
         setFormData({
             username: user.username,
             full_name: user.full_name,
+            email: user.email || '',
+            store_name: user.store_name || '',
             is_admin: user.is_admin
         });
         setEditDialog({ open: true, user });
@@ -385,6 +389,8 @@ export default function AdminPanel() {
                                                 <TableRow>
                                                     <TableCell>Username</TableCell>
                                                     <TableCell>Full Name</TableCell>
+                                                    <TableCell>Email</TableCell>
+                                                    <TableCell>Store Name</TableCell>
                                                     <TableCell>Role</TableCell>
                                                     <TableCell>User ID</TableCell>
                                                     <TableCell align="right">Actions</TableCell>
@@ -400,6 +406,8 @@ export default function AdminPanel() {
                                                             </Box>
                                                         </TableCell>
                                                         <TableCell>{user.full_name}</TableCell>
+                                                        <TableCell>{user.email || '-'}</TableCell>
+                                                        <TableCell>{user.store_name || '-'}</TableCell>
                                                         <TableCell>
                                                             <Chip
                                                                 label={user.is_admin ? 'Admin' : 'User'}
@@ -593,6 +601,27 @@ export default function AdminPanel() {
                         value={formData.full_name}
                         onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                         sx={{ mb: 2 }}
+                    />
+                    <TextField
+                        margin="dense"
+                        label="Email"
+                        type="email"
+                        fullWidth
+                        variant="outlined"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        sx={{ mb: 2 }}
+                        helperText="Optional - User email address"
+                    />
+                    <TextField
+                        margin="dense"
+                        label="Store Name"
+                        fullWidth
+                        variant="outlined"
+                        value={formData.store_name}
+                        onChange={(e) => setFormData({ ...formData, store_name: e.target.value })}
+                        sx={{ mb: 2 }}
+                        helperText="Optional - Name of the user's store"
                     />
                     <FormControlLabel
                         control={
