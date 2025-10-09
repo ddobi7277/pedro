@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import {
   Button, TextField, Typography, Box, Stack, Alert
 } from '@mui/material';
-import { getApiUrl } from '../config/apiConfig';
+import { getApiUrl, apiConfig } from '../config/apiConfig';
 
 export default function Welcome() {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -16,13 +16,13 @@ export default function Welcome() {
   const handleRegister = async () => {
     const token = localStorage.getItem('token');
 
-    if (!username || !email || !password) {
+    if (!username || !fullName || !password) {
       setErrorMsg("Todos los campos son obligatorios.");
       return;
     }
 
     try {
-      const response = await fetch(`${getApiUrl()}/register`, {
+      const response = await apiConfig.fetchWithFallback('register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -30,7 +30,7 @@ export default function Welcome() {
         },
         body: JSON.stringify({
           username,
-          full_name: email, // o fullName si renombraste
+          full_name: fullName,
           hashed_password: password
         })
       });
@@ -40,7 +40,7 @@ export default function Welcome() {
         setSuccessMsg('Usuario creado exitosamente. Redirigiendo al dashboard...');
         setErrorMsg('');
         setUsername('');
-        setEmail('');
+        setFullName('');
         setPassword('');
 
         // Esperar 2 segundos antes de navegar para que el usuario vea el mensaje
@@ -81,8 +81,8 @@ export default function Welcome() {
           />
           <TextField
             label="Nombre Completo"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
             required
             fullWidth
             placeholder="Ingrese el nombre completo del usuario"

@@ -277,3 +277,21 @@
 {"timestamp": "2025-10-03 16:03:32", "method": "GET", "url": "http://localhost:8000/get_seller_items", "status_code": 200, "duration_seconds": 0.006001, "client_ip": "127.0.0.1"}
 {"timestamp": "2025-10-03 16:03:43", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"}
 {"timestamp": "2025-10-03 16:03:43", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.002001, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-09 11:46:16", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-09 11:46:16", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.002255, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-09 11:46:18", "method": "GET", "url": "http://localhost:8000/openapi.json", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-09 11:46:18", "method": "GET", "url": "http://localhost:8000/openapi.json", "status_code": 200, "duration_seconds": 0.01716, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-09 11:46:37", "method": "GET", "url": "http://localhost:8000/store/claudia/items", "client_ip": "127.0.0.1", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"}
+{"timestamp": "2025-10-09 11:46:37", "method": "GET", "url": "http://localhost:8000/store/claudia/items", "status_code": 200, "duration_seconds": 0.023593, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-09 11:59:19", "method": "GET", "url": "http://localhost:8000/users", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-09 11:59:19", "method": "GET", "url": "http://localhost:8000/users", "status_code": 401, "duration_seconds": 0.002671, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-09 12:00:39", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-09 12:00:39", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.000767, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-09 12:00:41", "method": "POST", "url": "http://localhost:8000/token", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-09 12:00:41", "method": "POST", "url": "http://localhost:8000/token", "status_code": 401, "duration_seconds": 0.276509, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-09 12:00:43", "method": "POST", "url": "http://localhost:8000/token", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-09 12:00:43", "method": "POST", "url": "http://localhost:8000/token", "status_code": 401, "duration_seconds": 0.200068, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-09 12:01:33", "method": "GET", "url": "http://localhost:8000/docs", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-09 12:01:33", "method": "GET", "url": "http://localhost:8000/docs", "status_code": 200, "duration_seconds": 0.00074, "client_ip": "127.0.0.1"}
+{"timestamp": "2025-10-09 12:01:35", "method": "POST", "url": "http://localhost:8000/token", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}
+{"timestamp": "2025-10-09 12:01:37", "method": "POST", "url": "http://localhost:8000/token", "client_ip": "127.0.0.1", "user_agent": "python-requests/2.32.3"}

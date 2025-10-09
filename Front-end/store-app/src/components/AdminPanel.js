@@ -222,10 +222,10 @@ export default function AdminPanel() {
             }
 
             console.log('Token found, making request...');
-            console.log('URL:', `${getApiUrl()}/admin/users/${editDialog.user.id}`);
+            console.log('URL:', `admin/users/${editDialog.user.id}`);
             console.log('Request body:', JSON.stringify(formData));
 
-            const response = await fetch(`${getApiUrl()}/admin/users/${editDialog.user.id}`, {
+            const response = await apiConfig.fetchWithFallback(`admin/users/${editDialog.user.id}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -268,7 +268,7 @@ export default function AdminPanel() {
                 return;
             }
 
-            const response = await fetch(`${getApiUrl()}/admin/users/${deleteDialog.user.id}`, {
+            const response = await apiConfig.fetchWithFallback(`admin/users/${deleteDialog.user.id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
