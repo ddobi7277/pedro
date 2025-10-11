@@ -575,7 +575,28 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db), current
             if db_user:
                 raise HTTPException(status_code=400, detail="Username already exists")
             else:
-                return await create_user(db= db, user= user)
+                created_user = await create_user(db= db, user= user)
+                
+                # Build safe response
+                response_data = {
+                    "id": created_user.id,
+                    "username": created_user.username,
+                    "full_name": created_user.full_name,
+                    "is_admin": created_user.is_admin
+                }
+                
+                # Safely add email and store_name if they exist
+                if hasattr(created_user, 'email'):
+                    response_data["email"] = created_user.email
+                else:
+                    response_data["email"] = getattr(user, 'email', '')
+                    
+                if hasattr(created_user, 'store_name'):
+                    response_data["store_name"] = created_user.store_name
+                else:
+                    response_data["store_name"] = getattr(user, 'store_name', '')
+                
+                return response_data
 
 @app.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm= Depends() , db:Session= Depends(get_db)):

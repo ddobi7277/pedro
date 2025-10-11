@@ -24,19 +24,23 @@ export default function Welcome() {
     }
 
     try {
+      const requestData = {
+        username,
+        full_name: fullName,
+        email: email || null,
+        store_name: storeName || null,
+        hashed_password: password
+      };
+
+      console.log('🔍 [DEBUG CreateUser] Sending data:', requestData);
+
       const response = await apiConfig.fetchWithFallback('register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          username,
-          full_name: fullName,
-          email: email || null,
-          store_name: storeName || null,
-          hashed_password: password
-        })
+        body: JSON.stringify(requestData)
       });
 
       const data = await response.json();

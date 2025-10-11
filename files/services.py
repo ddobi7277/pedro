@@ -79,13 +79,23 @@ async def get_items_by_category(db:Session, category:str):
 
 async def create_user(db:Session, user: UserCreate):
     hashed_password = hash_password(user.hashed_password)
-    db_user= User(
-        id= str(uuid.uuid4()),
-        username= user.username, 
-        full_name= user.full_name, 
-        hashed_password= hashed_password,
-        is_admin= user.is_admin
-    )
+    
+    # Create user with basic required fields
+    user_data = {
+        'id': str(uuid.uuid4()),
+        'username': user.username, 
+        'full_name': user.full_name, 
+        'hashed_password': hashed_password,
+        'is_admin': user.is_admin
+    }
+    
+    # Add optional fields if they exist in the User model
+    if hasattr(User, 'email') and hasattr(user, 'email'):
+        user_data['email'] = user.email
+    if hasattr(User, 'store_name') and hasattr(user, 'store_name'):
+        user_data['store_name'] = user.store_name
+    
+    db_user = User(**user_data)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
