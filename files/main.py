@@ -741,28 +741,21 @@ async def public_store_items(seller: str, db: Session = Depends(get_db)):
     # Mapear manualmente para usar price_USD como price en la respuesta
     public_items = []
     for item in items:
-        # Obtener la primera imagen si existe
         image_url = None
-        if item.images:
-            try:
-                import json
-                images_list = json.loads(item.images)
-                if images_list:
-                    image_url = images_list[0]
-            except:
-                pass
-        
+        images_list = item.images if item.images else []
+        if images_list:
+            image_url = images_list[0]
         public_item = PublicItemResponse(
-            id=item.id,  # Agregar ID del producto
+            id=item.id,
             name=item.name,
-            price=item.price_USD,  # Usar price_USD en lugar de price
+            price=item.price_USD,
             cant=item.cant,
-            category=item.category,  # Agregar categoría
+            category=item.category,
             image=image_url,
+            images=images_list,
             detalles=item.detalles
         )
         public_items.append(public_item)
-    
     return public_items
 
 

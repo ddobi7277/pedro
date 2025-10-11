@@ -79,6 +79,35 @@ export default function PublicStore() {
         ? items.filter(item => item.category === selectedCategory)
         : items;
 
+    // Componente para mostrar todas las imágenes de un producto
+    const ProductImagesCarousel = ({ images, name }) => {
+        if (!images || images.length === 0) {
+            return <ProductImage image={'/placeholder-product.svg'} title={name} />;
+        }
+        // Si solo hay una imagen, mostrarla
+        if (images.length === 1) {
+            const img = images[0];
+            const match = img.match(/^\/uploads\/(.*?)\/(.*?)\/(.+)$/);
+            const src = match ? `${getApiUrl()}/secure-uploads/${match[1]}/${match[2]}/${match[3]}` : img;
+            return <ProductImage image={src} title={name} />;
+        }
+        // Si hay varias, mostrar la primera y miniaturas
+        const [main, ...thumbs] = images;
+        const match = main.match(/^\/uploads\/(.*?)\/(.*?)\/(.+)$/);
+        const mainSrc = match ? `${getApiUrl()}/secure-uploads/${match[1]}/${match[2]}/${match[3]}` : main;
+        return (
+            <Box>
+                <ProductImage image={mainSrc} title={name} />
+                <Box sx={{ display: 'flex', gap: 1, mt: 1, justifyContent: 'center' }}>
+                    {images.map((img, idx) => {
+                        const m = img.match(/^\/uploads\/(.*?)\/(.*?)\/(.+)$/);
+                        const src = m ? `${getApiUrl()}/secure-uploads/${m[1]}/${m[2]}/${m[3]}` : img;
+                        return <img key={idx} src={src} alt={name} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4, border: '1px solid #eee' }} />;
+                    })}
+                </Box>
+            </Box>
+        );
+    };
     if (loading) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
@@ -145,21 +174,7 @@ export default function PublicStore() {
                     {filteredItems.map((item) => (
                         <Grid item xs={12} sm={6} md={4} lg={3} key={item.name}>
                             <StyledCard>
-                                <ProductImage
-                                    image={item.image
-                                        ? (() => {
-                                            // item.image puede ser: /uploads/pedro/uuid/filename.png
-                                            // Extraer user, product_id, filename
-                                            const match = item.image.match(/^\/uploads\/(.*?)\/(.*?)\/(.+)$/);
-                                            if (match) {
-                                                const [, user, product_id, filename] = match;
-                                                return `${getApiUrl()}/secure-uploads/${user}/${product_id}/${filename}`;
-                                            }
-                                            return '/placeholder-product.svg';
-                                        })()
-                                        : '/placeholder-product.svg'}
-                                    title={item.name}
-                                />
+                                <ProductImagesCarousel images={item.images} name={item.name} />
                                 <CardContent sx={{ flexGrow: 1 }}>
                                     <Typography gutterBottom variant="h6" component="h2">
                                         {item.name}

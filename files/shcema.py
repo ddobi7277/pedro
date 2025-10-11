@@ -125,6 +125,7 @@ class PublicItemResponse(BaseModel):
     cant: int
     category: str | None = None
     image: str | None = None
+    images: list[str] | None = None
     detalles: str | None = None
 
 class ImageRemove(BaseModel):
