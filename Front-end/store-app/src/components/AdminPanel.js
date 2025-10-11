@@ -189,6 +189,10 @@ export default function AdminPanel() {
     };
 
     const handleEditUser = (user) => {
+        console.log('🔍 [DEBUG] User object received:', user);
+        console.log('🔍 [DEBUG] User email:', user.email);
+        console.log('🔍 [DEBUG] User store_name:', user.store_name);
+        
         setFormData({
             username: user.username,
             full_name: user.full_name,
@@ -205,7 +209,9 @@ export default function AdminPanel() {
 
     const saveUserChanges = async () => {
         console.log('saveUserChanges called!');
-        console.log('formData:', formData);
+        console.log('🔍 [DEBUG] Current formData:', formData);
+        console.log('🔍 [DEBUG] formData.email:', formData.email);
+        console.log('🔍 [DEBUG] formData.store_name:', formData.store_name);
         console.log('editDialog.user:', editDialog.user);
 
         setLoading(true);
