@@ -278,14 +278,27 @@ async def update_user_admin(user_id: str, user_update: UserUpdate, current_user:
         raise HTTPException(status_code=404, detail="User not found")
     
     logger.info(f"[ADMIN] User update successful: {updated_user.username}")
-    return {
+    
+    # Build response with safe attribute access for backward compatibility
+    response_data = {
         "id": updated_user.id,
         "username": updated_user.username,
         "full_name": updated_user.full_name,
-        "email": updated_user.email,
-        "store_name": updated_user.store_name,
         "is_admin": updated_user.is_admin
     }
+    
+    # Safely add email and store_name if they exist in the model
+    if hasattr(updated_user, 'email'):
+        response_data["email"] = updated_user.email
+    else:
+        response_data["email"] = update_data.get('email', '')
+        
+    if hasattr(updated_user, 'store_name'):
+        response_data["store_name"] = updated_user.store_name
+    else:
+        response_data["store_name"] = update_data.get('store_name', '')
+    
+    return response_data
 
 @app.delete("/admin/users/{user_id}")
 async def delete_user_admin(user_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
