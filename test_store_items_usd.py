@@ -30,6 +30,7 @@ def test_store_items_usd():
                     print("\n📦 Sample items with USD prices:")
                     for i, item in enumerate(data[:3]):  # Show first 3 items
                         print(f"  Item {i+1}:")
+                        print(f"    ID: {item.get('id', 'N/A')}")
                         print(f"    Name: {item.get('name', 'N/A')}")
                         print(f"    Price (USD): ${item.get('price', 'N/A')}")
                         print(f"    Quantity: {item.get('cant', 'N/A')}")
@@ -39,7 +40,7 @@ def test_store_items_usd():
                         print()
                         
                     # Verify the structure matches what was requested
-                    expected_fields = ['name', 'price', 'cant', 'category', 'image', 'detalles']
+                    expected_fields = ['id', 'name', 'price', 'cant', 'category', 'image', 'detalles']
                     first_item = data[0]
                     
                     print("🔍 Checking response structure:")
@@ -87,6 +88,7 @@ def test_localhost_comparison():
             if data:
                 first_item = data[0]
                 print(f"📦 First item on localhost:")
+                print(f"  ID: {first_item.get('id', 'N/A')}")
                 print(f"  Name: {first_item.get('name', 'N/A')}")
                 print(f"  Price (USD): ${first_item.get('price', 'N/A')}")
                 print(f"  Category: {first_item.get('category', 'N/A')}")

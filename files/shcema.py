@@ -119,6 +119,7 @@ class PublicItemResponse(BaseModel):
     """Modelo de respuesta para la vista pública de items - solo muestra información necesaria para los clientes"""
     model_config = ConfigDict(from_attributes=True)
     
+    id: str
     name: str
     price: float  # Este será el price_USD del modelo
     cant: int

@@ -146,7 +146,18 @@ export default function PublicStore() {
                         <Grid item xs={12} sm={6} md={4} lg={3} key={item.name}>
                             <StyledCard>
                                 <ProductImage
-                                    image={item.image ? `${getApiUrl()}/uploads/${item.image}` : '/placeholder-product.svg'}
+                                    image={item.image
+                                        ? (() => {
+                                            // item.image puede ser: /uploads/pedro/uuid/filename.png
+                                            // Extraer user, product_id, filename
+                                            const match = item.image.match(/^\/uploads\/(.*?)\/(.*?)\/(.+)$/);
+                                            if (match) {
+                                                const [, user, product_id, filename] = match;
+                                                return `${getApiUrl()}/secure-uploads/${user}/${product_id}/${filename}`;
+                                            }
+                                            return '/placeholder-product.svg';
+                                        })()
+                                        : '/placeholder-product.svg'}
                                     title={item.name}
                                 />
                                 <CardContent sx={{ flexGrow: 1 }}>

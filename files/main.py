@@ -1,3 +1,23 @@
+from fastapi.responses import FileResponse
+# Endpoint seguro para servir imágenes solo a orígenes permitidos
+app = FastAPI()
+@app.get("/secure-uploads/{user}/{product_id}/{filename}")
+async def secure_uploads(user: str, product_id: str, filename: str, request: Request):
+    allowed_origins = [
+        "https://whimsy-mac.com",
+        "https://www.whimsy-mac.com",
+        "https://cubaunify.uk",
+        "https://www.cubaunify.uk",
+        "https://cubalcance.netlify.app",
+        "http://localhost:3000"
+    ]
+    origin = request.headers.get("origin") or request.headers.get("referer", "")
+    if not any(allowed in origin for allowed in allowed_origins):
+        raise HTTPException(status_code=403, detail="Not authorized to access this image")
+    file_path = os.path.join("uploads", user, product_id, filename)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Image not found")
+    return FileResponse(file_path)
 from fastapi import FastAPI, WebSocket,Depends,  HTTPException, status,Request, UploadFile, File, Form
 from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
 from fastapi import FastAPI,Form
@@ -23,7 +43,6 @@ import platform
 import json
 
 
-app = FastAPI()
 
 # Middleware para logging con timestamps precisos
 @app.middleware("http")
@@ -725,6 +744,7 @@ async def public_store_items(seller: str, db: Session = Depends(get_db)):
                 pass
         
         public_item = PublicItemResponse(
+            id=item.id,  # Agregar ID del producto
             name=item.name,
             price=item.price_USD,  # Usar price_USD en lugar de price
             cant=item.cant,

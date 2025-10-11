@@ -28,20 +28,40 @@ import { ButtonGroup, TextField, Tooltip } from "@mui/material";
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
-
-// Helper function para construir URLs de imágenes usando apiConfig
-const getImageUrl = (imagePath) => {
-  if (!imagePath) return '';
-  if (imagePath.startsWith('http')) return imagePath;
-  return `${apiConfig.currentBaseUrl}${imagePath}`;
-};
-import DialogActions from '@mui/material/DialogActions';
-import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+<img
+  src={(() => {
+    if (image && image.startsWith('/uploads/')) {
+      const match = image.match(/^\/uploads\/(.*?)\/(.*?)\/(.+)$/);
+      if (match) {
+        const [, user, product_id, filename] = match;
+        return `${getApiUrl()}/secure-uploads/${user}/${product_id}/${filename}`;
+      }
+    }
+    return getImageUrl(image);
+  })()}
+  alt={`Thumbnail ${index + 1}`}
+  style={{
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover'
+  }}
+  onError={(e) => {
+    if (!e.target.src.includes('cubaunify.uk')) {
+      // Si la imagen es relativa, construir la URL segura
+      if (image && image.startsWith('/uploads/')) {
+        const match = image.match(/^\/uploads\/(.*?)\/(.*?)\/(.+)$/);
+        if (match) {
+          const [, user, product_id, filename] = match;
+          e.target.src = `${getApiUrl()}/secure-uploads/${user}/${product_id}/${filename}`;
+        } else {
+          e.target.src = `https://cubaunify.uk${image}`;
+        }
+      } else {
+        e.target.src = image.startsWith('http') ? image : `https://cubaunify.uk${image}`;
+      }
+    }
+  }}
+/>
 import FormControl from '@mui/material/FormControl';
 import SendIcon from '@mui/icons-material/Send';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
@@ -3043,7 +3063,18 @@ function ListItems({ items, username }) {
                       }}
                       onError={(e) => {
                         if (!e.target.src.includes('cubaunify.uk')) {
-                          e.target.src = image.startsWith('http') ? image : `https://cubaunify.uk${image}`;
+                          // Si la imagen es relativa, construir la URL segura
+                          if (image && image.startsWith('/uploads/')) {
+                            const match = image.match(/^\/uploads\/(.*?)\/(.*?)\/(.+)$/);
+                            if (match) {
+                              const [, user, product_id, filename] = match;
+                              e.target.src = `${getApiUrl()}/secure-uploads/${user}/${product_id}/${filename}`;
+                            } else {
+                              e.target.src = `https://cubaunify.uk${image}`;
+                            }
+                          } else {
+                            e.target.src = image.startsWith('http') ? image : `https://cubaunify.uk${image}`;
+                          }
                         }
                       }}
                     />

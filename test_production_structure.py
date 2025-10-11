@@ -4,9 +4,9 @@ import requests
 import json
 
 def test_production_structure():
-    """Test the production endpoint to see current structure"""
+    """Test the production endpoint to see current structure with ID"""
     
-    print("🔍 Testing production /store/claudia/items endpoint...")
+    print("🔍 Testing production /store/claudia/items endpoint (with ID)...")
     
     url = "https://cubaunify.uk/store/claudia/items"
     
