@@ -55,6 +55,7 @@ import StarIcon from '@mui/icons-material/Star';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import IconButton from '@mui/material/IconButton';
 
 // Tema personalizado para la tabla con mejoras responsive
 const inventoryTheme = createTheme({
