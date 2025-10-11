@@ -13,7 +13,7 @@ import {
     Alert,
     CircularProgress
 } from '@mui/material';
-import { getApiUrl } from '../config/apiConfig';
+import { getApiUrl, apiConfig } from '../config/apiConfig';
 import { styled } from '@mui/material/styles';
 
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -55,23 +55,20 @@ export default function PublicStore() {
         try {
             setLoading(true);
 
-            // Fetch items from public endpoint
-            const itemsResponse = await fetch(`${getApiUrl()}/store/${seller}/items`);
-            if (!itemsResponse.ok) {
-                throw new Error('Failed to fetch items');
-            }
-            const itemsData = await itemsResponse.json();
-            setItems(itemsData);
+            console.log(`[STORE] Fetching data for seller: ${seller}`);
 
-            // Fetch categories from public endpoint
-            const categoriesResponse = await fetch(`${getApiUrl()}/store/${seller}/categories`);
-            if (!categoriesResponse.ok) {
-                throw new Error('Failed to fetch categories');
-            }
-            const categoriesData = await categoriesResponse.json();
+            // Fetch items from public endpoint using apiConfig with fallback
+            const itemsData = await apiConfig.fetchWithFallback(`/store/${seller}/items`);
+            setItems(itemsData);
+            console.log(`[STORE] Loaded ${itemsData.length} items for ${seller}`);
+
+            // Fetch categories from public endpoint using apiConfig with fallback
+            const categoriesData = await apiConfig.fetchWithFallback(`/store/${seller}/categories`);
             setCategories(categoriesData);
+            console.log(`[STORE] Loaded ${categoriesData.length} categories for ${seller}`);
 
         } catch (err) {
+            console.error(`[STORE] Error fetching store data for ${seller}:`, err);
             setError(err.message);
         } finally {
             setLoading(false);

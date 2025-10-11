@@ -120,8 +120,9 @@ class PublicItemResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
     name: str
-    price: float
+    price: float  # Este será el price_USD del modelo
     cant: int
+    category: str | None = None
     image: str | None = None
     detalles: str | None = None
 

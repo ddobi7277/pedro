@@ -84,9 +84,58 @@ def is_cloudflare_request(headers):
 
 
 
+def get_allowed_origins():
+    """Get dynamically allowed CORS origins including user store domains"""
+    
+    # Base allowed origins
+    base_origins = [
+        "https://reliably-communal-man.ngrok-free.app",
+        "https://cubalcance.netlify.app",
+        "http://localhost:3000",
+        "127.0.0.1",
+        "https://cubaunify.uk",
+        "http://cubaunify.uk"
+    ]
+    
+    # Additional store domains (you can expand this list)
+    store_domains = [
+        "https://whimsy-mac.com",
+        "http://whimsy-mac.com", 
+        "https://www.whimsy-mac.com",
+        "http://www.whimsy-mac.com"
+    ]
+    
+    # TODO: In the future, you could query the database for user store_names
+    # and automatically generate domains like: https://{store_name}.com
+    # Example:
+    # try:
+    #     from database import get_db_session
+    #     db = next(get_db_session())
+    #     users = db.query(User).filter(User.store_name.isnot(None)).all()
+    #     for user in users:
+    #         if user.store_name and '.' in user.store_name:  # If store_name looks like a domain
+    #             store_domains.extend([
+    #                 f"https://{user.store_name}",
+    #                 f"http://{user.store_name}",
+    #                 f"https://www.{user.store_name}",
+    #                 f"http://www.{user.store_name}"
+    #             ])
+    # except Exception as e:
+    #     logger.warning(f"Could not load dynamic store domains: {e}")
+    
+    return base_origins + store_domains
+
+def add_store_domain_to_cors(store_name: str):
+    """Helper function to add a store domain to CORS (for future use)"""
+    if store_name and '.' in store_name:
+        # This could be used to dynamically add domains when users update their store_name
+        logger.info(f"Store domain detected: {store_name}")
+        # Future implementation: restart CORS middleware or use dynamic origin validation
+        pass
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins= ["https://reliably-communal-man.ngrok-free.app","https://cubalcance.netlify.app",'http://localhost:3000','127.0.0.1'],
+    allow_origins=get_allowed_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -188,6 +237,20 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
 # =============================
 # Admin User Management Endpoints
 # =============================
+
+@app.get("/admin/allowed-origins")
+async def get_allowed_origins_endpoint(current_user: User = Depends(get_current_user)):
+    """Get list of allowed CORS origins (admin only)"""
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+    
+    return {
+        "allowed_origins": get_allowed_origins(),
+        "note": "These domains can access the API"
+    }
 
 @app.get("/admin/users")
 async def get_all_users_admin(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -644,10 +707,34 @@ async def create_items(
 @app.get('/store/{seller}/items', response_model=list[PublicItemResponse])
 async def public_store_items(seller: str, db: Session = Depends(get_db)):
     """Public endpoint to get items for a given seller (store view).
-    Returns only public information: name, price, quantity, image, and details."""
+    Returns only public information: name, price (in USD), quantity, category, image, and details."""
     items = await get_items_by_seller(seller, db)
-    # Convertir a PublicItemResponse para ocultar información sensible
-    return [PublicItemResponse.model_validate(item) for item in items]
+    
+    # Mapear manualmente para usar price_USD como price en la respuesta
+    public_items = []
+    for item in items:
+        # Obtener la primera imagen si existe
+        image_url = None
+        if item.images:
+            try:
+                import json
+                images_list = json.loads(item.images)
+                if images_list:
+                    image_url = images_list[0]
+            except:
+                pass
+        
+        public_item = PublicItemResponse(
+            name=item.name,
+            price=item.price_USD,  # Usar price_USD en lugar de price
+            cant=item.cant,
+            category=item.category,  # Agregar categoría
+            image=image_url,
+            detalles=item.detalles
+        )
+        public_items.append(public_item)
+    
+    return public_items
 
 
 @app.get('/store/{seller}/categories')
