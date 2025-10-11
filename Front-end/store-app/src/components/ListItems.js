@@ -28,6 +28,7 @@ import { ButtonGroup, TextField, Tooltip } from "@mui/material";
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 import FormControl from '@mui/material/FormControl';
 import SendIcon from '@mui/icons-material/Send';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
@@ -1332,7 +1333,7 @@ function ListItems({ items, username }) {
   // TODO: Conectar con tabla sales para obtener ventas reales
   const totalGananciasReales = 0; // Por ahora 0, necesita conectar con sales
 
-  const totalGananciasProximadas = rowsWithChanges.length > 0 ?
+  const totalGananciasProximas = rowsWithChanges.length > 0 ?
     rowsWithChanges.reduce((acc, item) => {
       const priceMN = parseFloat(item.price) || 0;  // Price en MN
       const priceUSD = parseFloat(item.price_USD) || 0;  // Price en USD
@@ -1387,7 +1388,7 @@ function ListItems({ items, username }) {
     localStorage.setItem('totalUSD', totalUSD);
     localStorage.setItem('totalInversiones', totalInversiones);
     localStorage.setItem('totalGananciasReales', totalGananciasReales);
-    localStorage.setItem('totalGananciasProximadas', totalGananciasProximadas);
+    localStorage.setItem('totalGananciasProximas', totalGananciasProximas);
 
     // Debug: verificar si los items incluyen detalles
     console.log('🔍 ListItems useEffect - items recibidos:', items);
@@ -2477,7 +2478,7 @@ function ListItems({ items, username }) {
                         {costoMN.toLocaleString()} MN
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        ${costoUSD.toFixed(2)} USD
+                        ${costoUSD.toLocaleString()} USD
                       </Typography>
                     </Box>
                   )}
@@ -2740,11 +2741,11 @@ function ListItems({ items, username }) {
                 </Avatar>
               </ListItemAvatar>
               <ListItemText
-                primary="Ganancias Proximadas (Si vendes todo):"
-                secondary={`${(totalGananciasProximadas * tasaCambio).toFixed(2)} MN - ${totalGananciasProximadas.toFixed(2)} USD`}
+                primary="Ganancias Proximas (Si vendes todo):"
+                secondary={`${(totalGananciasProximas * tasaCambio).toFixed(2)} MN - ${totalGananciasProximas.toFixed(2)} USD`}
                 sx={{
-                  '& .MuiListItemText-primary': { color: totalGananciasProximadas >= 0 ? 'success.main' : 'error.main' },
-                  '& .MuiListItemText-secondary': { color: totalGananciasProximadas >= 0 ? 'success.main' : 'error.main' }
+                  '& .MuiListItemText-primary': { color: totalGananciasProximas >= 0 ? 'success.main' : 'error.main' },
+                  '& .MuiListItemText-secondary': { color: totalGananciasProximas >= 0 ? 'success.main' : 'error.main' }
                 }}
               />
             </ListItem>
@@ -2784,8 +2785,8 @@ function ListItems({ items, username }) {
               <TrendingUpIcon sx={{ fontSize: isMobile ? 14 : 14 }} />
             </Avatar>
             <Typography variant="body2" sx={{ color: '#666', fontSize: isMobile ? '0.875rem' : 'inherit' }}>
-              Gan. Aproximadas: <span style={{ color: totalGananciasProximadas >= 0 ? '#4caf50' : '#f44336', fontWeight: 600 }}>
-                {isMobile ? `${(totalGananciasProximadas * tasaCambio).toFixed(0)} MN - $${totalGananciasProximadas.toFixed(1)} USD` : `${(totalGananciasProximadas * tasaCambio).toFixed(2)} MN - ${totalGananciasProximadas.toFixed(2)} USD`}
+              Gan. Aproximadas: <span style={{ color: totalGananciasProximas >= 0 ? '#4caf50' : '#f44336', fontWeight: 600 }}>
+                {isMobile ? `${(totalGananciasProximas * tasaCambio).toFixed(0)} MN - $${totalGananciasProximas.toFixed(1)} USD` : `${(totalGananciasProximas * tasaCambio).toFixed(2)} MN - ${totalGananciasProximas.toFixed(2)} USD`}
               </span>
             </Typography>
           </Box>
