@@ -202,14 +202,16 @@ async def get_all_users_admin(current_user: User = Depends(get_current_user), db
     # Convert SQLAlchemy objects to dict format
     users_data = []
     for user in users:
-        users_data.append({
+        user_dict = {
             "id": user.id,
             "username": user.username,
             "full_name": user.full_name,
-            "email": user.email,
-            "store_name": user.store_name,
+            "email": user.email if user.email is not None else None,
+            "store_name": user.store_name if user.store_name is not None else None,
             "is_admin": user.is_admin
-        })
+        }
+        print(f"[DEBUG] User dict for {user.username}: {user_dict}")  # Debug temporal
+        users_data.append(user_dict)
     return {"users": users_data}
 
 @app.get("/admin/users/{user_id}")
