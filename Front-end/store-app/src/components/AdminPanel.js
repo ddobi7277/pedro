@@ -192,14 +192,23 @@ export default function AdminPanel() {
         console.log('🔍 [DEBUG] User object received:', user);
         console.log('🔍 [DEBUG] User email:', user.email);
         console.log('🔍 [DEBUG] User store_name:', user.store_name);
-        
+
         setFormData({
+            username: user.username,
+            full_name: user.full_name,
+            email: user.email || '',  // Default to empty string if not present
+            store_name: user.store_name || '',  // Default to empty string if not present
+            is_admin: user.is_admin
+        });
+
+        console.log('🔍 [DEBUG] formData set to:', {
             username: user.username,
             full_name: user.full_name,
             email: user.email || '',
             store_name: user.store_name || '',
             is_admin: user.is_admin
         });
+
         setEditDialog({ open: true, user });
     };
 

@@ -199,20 +199,26 @@ async def get_all_users_admin(current_user: User = Depends(get_current_user), db
         )
     
     users = await get_all_users(db)
-    # Convert SQLAlchemy objects to dict format
+    # Convert SQLAlchemy objects to dict format - force include email and store_name
     users_data = []
     for user in users:
         user_dict = {
             "id": user.id,
             "username": user.username,
             "full_name": user.full_name,
-            "email": user.email if user.email is not None else None,
-            "store_name": user.store_name if user.store_name is not None else None,
+            "email": user.email or "",  # Convert None to empty string
+            "store_name": user.store_name or "",  # Convert None to empty string
             "is_admin": user.is_admin
         }
         print(f"[DEBUG] User dict for {user.username}: {user_dict}")  # Debug temporal
         users_data.append(user_dict)
-    return {"users": users_data}
+    
+    # Also add explicit fields to the response
+    response_data = {
+        "users": users_data
+    }
+    print(f"[DEBUG] Final response data: {response_data}")  # Debug temporal
+    return response_data
 
 @app.get("/admin/users/{user_id}")
 async def get_user_by_id_admin(user_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
