@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from '@mui/material/Button'
 import {
@@ -229,6 +229,9 @@ function ListItems({ items, username }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [showImageUploader, setShowImageUploader] = useState(false);
+  // Refs para accesibilidad
+  const imageModalTriggerRef = useRef(null); // Guarda el botón/celda que abre el modal
+  const imageModalFirstElementRef = useRef(null); // Primer elemento enfocable del modal
 
   // Función para construir URLs de imágenes seguras
   const getImageUrl = (imagePath) => {
@@ -253,12 +256,17 @@ function ListItems({ items, username }) {
   };
 
   // Función para abrir el modal de imágenes
-  const openImageModal = (images, startIndex = 0, item = null) => {
+  const openImageModal = (images, startIndex = 0, item = null, triggerRef = null) => {
     if (images && images.length > 0) {
       setSelectedImages(images);
       setCurrentImageIndex(startIndex);
       setSelectedItem(item);
       setImageModalOpen(true);
+      if (triggerRef && triggerRef.current) {
+        imageModalTriggerRef.current = triggerRef.current;
+      } else {
+        imageModalTriggerRef.current = document.activeElement;
+      }
     }
   };
 
@@ -2948,7 +2956,15 @@ function ListItems({ items, username }) {
         {/* Modal para mostrar imágenes en grande */}
         <Dialog
           open={imageModalOpen}
-          onClose={() => setImageModalOpen(false)}
+          onClose={() => {
+            setImageModalOpen(false);
+            // Devolver el foco al trigger
+            setTimeout(() => {
+              if (imageModalTriggerRef.current) {
+                imageModalTriggerRef.current.focus();
+              }
+            }, 0);
+          }}
           maxWidth="md"
           fullWidth
           PaperProps={{
@@ -2957,12 +2973,25 @@ function ListItems({ items, username }) {
               backdropFilter: 'blur(5px)',
             }
           }}
+          aria-modal="true"
         >
           <DialogTitle sx={{ color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6">
               Imágenes del Producto ({currentImageIndex + 1} de {selectedImages.length})
             </Typography>
-            <IconButton onClick={() => setImageModalOpen(false)} sx={{ color: 'white' }}>
+            <IconButton
+              onClick={() => {
+                setImageModalOpen(false);
+                setTimeout(() => {
+                  if (imageModalTriggerRef.current) {
+                    imageModalTriggerRef.current.focus();
+                  }
+                }, 0);
+              }}
+              sx={{ color: 'white' }}
+              ref={imageModalFirstElementRef}
+              autoFocus
+            >
               <CloseIcon />
             </IconButton>
           </DialogTitle>
