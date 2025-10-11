@@ -9,6 +9,8 @@ export default function Welcome() {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [storeName, setStoreName] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -17,7 +19,7 @@ export default function Welcome() {
     const token = localStorage.getItem('token');
 
     if (!username || !fullName || !password) {
-      setErrorMsg("Todos los campos son obligatorios.");
+      setErrorMsg("Username, Nombre Completo y Contraseña son obligatorios.");
       return;
     }
 
@@ -31,6 +33,8 @@ export default function Welcome() {
         body: JSON.stringify({
           username,
           full_name: fullName,
+          email: email || null,
+          store_name: storeName || null,
           hashed_password: password
         })
       });
@@ -41,6 +45,8 @@ export default function Welcome() {
         setErrorMsg('');
         setUsername('');
         setFullName('');
+        setEmail('');
+        setStoreName('');
         setPassword('');
 
         // Esperar 2 segundos antes de navegar para que el usuario vea el mensaje
@@ -87,6 +93,23 @@ export default function Welcome() {
             fullWidth
             placeholder="Ingrese el nombre completo del usuario"
             helperText="Este nombre se mostrará en el sistema"
+          />
+          <TextField
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            fullWidth
+            placeholder="Ingrese el email del usuario (opcional)"
+            helperText="Email para contacto y notificaciones"
+          />
+          <TextField
+            label="Nombre de la Tienda"
+            value={storeName}
+            onChange={(e) => setStoreName(e.target.value)}
+            fullWidth
+            placeholder="Ingrese el nombre de la tienda (opcional)"
+            helperText="Nombre de la tienda del usuario"
           />
           <TextField
             label="Contraseña"
