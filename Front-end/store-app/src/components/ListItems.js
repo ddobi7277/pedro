@@ -3003,11 +3003,19 @@ function ListItems({ items, username }) {
                       borderRadius: '8px'
                     }}
                     onError={(e) => {
-                      // Fallback para cubaunify.uk
+                      const imgSrc = selectedImages[currentImageIndex];
                       if (!e.target.src.includes('cubaunify.uk')) {
-                        e.target.src = selectedImages[currentImageIndex]?.startsWith('http')
-                          ? selectedImages[currentImageIndex]
-                          : `https://cubaunify.uk${selectedImages[currentImageIndex]}`;
+                        if (imgSrc && imgSrc.startsWith('/uploads/')) {
+                          const match = imgSrc.match(/^\/uploads\/(.*?)\/(.*?)\/(.+)$/);
+                          if (match) {
+                            const [, user, product_id, filename] = match;
+                            e.target.src = `${getApiUrl()}/secure-uploads/${user}/${product_id}/${filename}`;
+                          } else {
+                            e.target.src = `https://cubaunify.uk${imgSrc}`;
+                          }
+                        } else {
+                          e.target.src = imgSrc && imgSrc.startsWith('http') ? imgSrc : `https://cubaunify.uk${imgSrc}`;
+                        }
                       }
                     }}
                   />
@@ -3062,18 +3070,19 @@ function ListItems({ items, username }) {
                         objectFit: 'cover'
                       }}
                       onError={(e) => {
+                        // Usar closure para capturar el valor de image
+                        const imgSrc = image;
                         if (!e.target.src.includes('cubaunify.uk')) {
-                          // Si la imagen es relativa, construir la URL segura
-                          if (image && image.startsWith('/uploads/')) {
-                            const match = image.match(/^\/uploads\/(.*?)\/(.*?)\/(.+)$/);
+                          if (imgSrc && imgSrc.startsWith('/uploads/')) {
+                            const match = imgSrc.match(/^\/uploads\/(.*?)\/(.*?)\/(.+)$/);
                             if (match) {
                               const [, user, product_id, filename] = match;
                               e.target.src = `${getApiUrl()}/secure-uploads/${user}/${product_id}/${filename}`;
                             } else {
-                              e.target.src = `https://cubaunify.uk${image}`;
+                              e.target.src = `https://cubaunify.uk${imgSrc}`;
                             }
                           } else {
-                            e.target.src = image.startsWith('http') ? image : `https://cubaunify.uk${image}`;
+                            e.target.src = imgSrc && imgSrc.startsWith('http') ? imgSrc : `https://cubaunify.uk${imgSrc}`;
                           }
                         }
                       }}

@@ -1,9 +1,35 @@
+from fastapi import FastAPI, WebSocket,Depends,  HTTPException, status,Request, UploadFile, File, Form
+from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
+from fastapi import FastAPI,Form
+from shcema import UserCreate,ItemCreate,SaleCreate,SaleEdit,CategoryCreate, PublicItemResponse, UserUpdate, UserRead
+from datetime import timedelta, datetime
+from fastapi.middleware.cors import CORSMiddleware
+from services import *
+from models import User
+from fastapi.staticfiles import StaticFiles
+import os
+import logging
+import json
+import uuid as _uuid
+from sqlalchemy.orm import Session
+import ipaddress
+import requests
+import subprocess
+import platform
 from fastapi.responses import FileResponse
+import uuid as _uuid
+from sqlalchemy.orm import Session
+import ipaddress
+import requests
+import subprocess
+import platform
+import json
 # Endpoint seguro para servir imágenes solo a orígenes permitidos
 app = FastAPI()
 @app.get("/secure-uploads/{user}/{product_id}/{filename}")
 async def secure_uploads(user: str, product_id: str, filename: str, request: Request):
     allowed_origins = [
+        'https://whimsy-mac.com',
         "https://whimsy-mac.com",
         "https://www.whimsy-mac.com",
         "https://cubaunify.uk",
@@ -18,29 +44,12 @@ async def secure_uploads(user: str, product_id: str, filename: str, request: Req
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Image not found")
     return FileResponse(file_path)
-from fastapi import FastAPI, WebSocket,Depends,  HTTPException, status,Request, UploadFile, File, Form
-from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm
-from fastapi import FastAPI,Form
-from shcema import UserCreate,ItemCreate,SaleCreate,SaleEdit,CategoryCreate, PublicItemResponse, UserUpdate, UserRead
-from datetime import timedelta, datetime
-from fastapi.middleware.cors import CORSMiddleware
-from services import *
-from models import User
-from fastapi.staticfiles import StaticFiles
-import os
-import logging
-import json
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-import uuid as _uuid
-from sqlalchemy.orm import Session
-import ipaddress
-import requests
-import subprocess
-import platform
-import json
+
 
 
 
@@ -803,6 +812,7 @@ async def create_customer_endpoint(customer: CustomerCreate, db: Session = Depen
     return await create_customer(db, customer)
 
 
+@app.get("/customers/{customer_id}")
 @app.get("/customers/{customer_id}")
 async def get_customer_endpoint(customer_id: str, db: Session = Depends(get_db)):
     cust = await get_customer_by_id(db, customer_id)
