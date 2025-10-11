@@ -57,6 +57,10 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import IconButton from '@mui/material/IconButton';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
 // Tema personalizado para la tabla con mejoras responsive
 const inventoryTheme = createTheme({
@@ -225,6 +229,28 @@ function ListItems({ items, username }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [showImageUploader, setShowImageUploader] = useState(false);
+
+  // Función para construir URLs de imágenes seguras
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return '';
+
+    // Si ya es una URL completa, devolverla
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+
+    // Si es un path que empieza con /uploads/, convertirlo al endpoint seguro
+    if (imagePath.startsWith('/uploads/')) {
+      const match = imagePath.match(/^\/uploads\/(.*?)\/(.*?)\/(.+)$/);
+      if (match) {
+        const [, user, product_id, filename] = match;
+        return `${getApiUrl()}/secure-uploads/${user}/${product_id}/${filename}`;
+      }
+    }
+
+    // Para otros casos, usar el dominio de fallback
+    return imagePath.startsWith('/') ? `https://cubaunify.uk${imagePath}` : `https://cubaunify.uk/${imagePath}`;
+  };
 
   // Función para abrir el modal de imágenes
   const openImageModal = (images, startIndex = 0, item = null) => {
